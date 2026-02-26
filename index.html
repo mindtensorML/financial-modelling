@@ -311,7 +311,7 @@ flowchart TD
     subgraph P1["PHASE 1: SCOPING — 9 steps, 2 checkpoints"]
         direction LR
         P1_A["Define decision, audience,<br/>metrics ≤ 3, horizon,<br/>periodicity, constraints"]
-        P1_B{{"Scope defined?<br/>Metrics ≤ 3?"}}:::decision
+        P1_B{"Scope defined?<br/>Metrics ≤ 3?"}:::decision
         P1_C[/"Write scope summary<br/>& get sign-off"/]
         P1_A --> P1_B -->|Yes| P1_C
         P1_B -->|No| P1_A
@@ -323,7 +323,7 @@ flowchart TD
         direction LR
         P2_A["Tab map, naming, colors,<br/>column/row structure,<br/>sign conventions, formatting"]
         P2_B["Map calculation flow<br/>Assumptions→IS→BS→CF→DCF→Outputs<br/>Flag circular refs"]
-        P2_C{{"Structure<br/>standardized?"}}:::decision
+        P2_C{"Structure<br/>standardized?"}:::decision
         P2_A --> P2_B --> P2_C
         P2_C -->|No| P2_A
     end
@@ -334,7 +334,7 @@ flowchart TD
         direction LR
         P3_A[/"Gather source docs"/]
         P3_B["Enter historicals, calc ratios,<br/>build assumption block,<br/>scenarios Low/Base/High"]
-        P3_C{{"BS balances?<br/>Toggle works?"}}:::decision
+        P3_C{"BS balances?<br/>Toggle works?"}:::decision
         P3_D["Legal/regulatory verification<br/>Macro framework: inflation, FX"]
         P3_A --> P3_B --> P3_C -->|Yes| P3_D
         P3_C -->|No| P3_B
@@ -356,7 +356,7 @@ flowchart TD
     subgraph P5["PHASE 5: OUTPUTS & CHECKS — 15 steps, 2 checkpoints"]
         direction LR
         P5_A["Output summary, valuation range,<br/>key ratios, error checks"]
-        P5_B{{"All checks PASS?<br/>Dashboard ok?"}}:::decision
+        P5_B{"All checks PASS?<br/>Dashboard ok?"}:::decision
         P5_C[/"Executive Dashboard"/]
         P5_A --> P5_B -->|Yes| P5_C
     end
@@ -366,13 +366,13 @@ flowchart TD
     subgraph P6["PHASE 6: STRESS & COMMUNICATE — 13 steps, 2 checkpoints"]
         direction LR
         P6_A["Sensitivity tables,<br/>full scenarios,<br/>extreme value tests"]
-        P6_B{{"Model breaks?"}}:::decision
+        P6_B{"Model breaks?"}:::decision
         P6_C["Package: narrative,<br/>handoff checklist,<br/>reviewer simulation"]
         P6_A --> P6_B -->|No| P6_C
     end
 
     P6 --> RECONCILE["1.10 Final scope reconciliation"]
-    RECONCILE --> CP_FINAL{{"Cover matches model?<br/>Exclusions absent?"}}:::decision
+    RECONCILE --> CP_FINAL{"Cover matches model?<br/>Exclusions absent?"}:::decision
     CP_FINAL -->|Yes| STOP(["END: Model Complete"]):::terminal
     CP_FINAL -->|No| P1
 
@@ -434,12 +434,12 @@ flowchart TD
     S1_5 --> S1_6["1.6 List known constraints"]:::process
     S1_6 --> S1_7["1.7 Define exclusions + impact notes"]:::process
 
-    S1_7 --> CP1{{"Decision defined?<br/>Metrics ≤ 3?<br/>Constraints documented?"}}:::decision
+    S1_7 --> CP1{"Decision defined?<br/>Metrics ≤ 3?<br/>Constraints documented?"}:::decision
     CP1 -->|No| S1_1
     CP1 -->|Yes| S1_8["1.8 Write scope summary"]:::process
     S1_8 --> S1_9[/"1.9 Get scope sign-off"/]:::io
 
-    S1_9 --> CP1b{{"Sign-off obtained?"}}:::decision
+    S1_9 --> CP1b{"Sign-off obtained?"}:::decision
     CP1b -->|No| S1_8
     CP1b -->|Yes| P1_END(["End Phase 1"]):::terminal</pre>
                 <div class="diagram-placeholder" id="placeholder-1">
@@ -490,7 +490,7 @@ flowchart TD
     S2_10 --> S2_11["2.11 Design Timing & Flags tab"]:::process
     S2_11 --> S2_12["2.12 Plan Table of Contents tab"]:::process
 
-    S2_12 --> CP2{{"Tab map ordered?<br/>Columns aligned?<br/>Sign convention set?<br/>Flow mapped?"}}:::decision
+    S2_12 --> CP2{"Tab map ordered?<br/>Columns aligned?<br/>Sign convention set?<br/>Flow mapped?"}:::decision
     CP2 -->|No| S2_1
     CP2 -->|Yes| P2_END(["End Phase 2"]):::terminal
 
@@ -541,7 +541,7 @@ flowchart TD
     S3_7 --> S3_8["3.8 Cross-check historical data"]:::process
     S3_8 --> S3_9["3.9 Document all data transformations"]:::process
 
-    S3_9 --> CP3{{"BS balances historically?<br/>All assumptions sourced?<br/>Scenario toggle works?<br/>No hardcoded numbers<br/>outside assumption block?"}}:::decision
+    S3_9 --> CP3{"BS balances historically?<br/>All assumptions sourced?<br/>Scenario toggle works?<br/>No hardcoded numbers<br/>outside assumption block?"}:::decision
     CP3 -->|No| S3_4
     CP3 -->|Yes| S3_10["3.10 Verify legal & regulatory basis<br/>Tax rates, NOLs, depreciation"]:::process
     S3_10 --> S3_11["3.11 Document legal basis per assumption"]:::process
@@ -549,7 +549,7 @@ flowchart TD
     S3_12 --> S3_13["3.13 Build inflation index layer"]:::process
     S3_13 --> S3_14["3.14 Handle multi-currency exposures"]:::process
 
-    S3_14 --> CP3b{{"Inflation centralized?<br/>FX projected?<br/>All currencies labeled?"}}:::decision
+    S3_14 --> CP3b{"Inflation centralized?<br/>FX projected?<br/>All currencies labeled?"}:::decision
     CP3b -->|No| S3_12
     CP3b -->|Yes| P3_END(["End Phase 3"]):::terminal</pre>
                 <div class="diagram-placeholder" id="placeholder-3">
@@ -596,7 +596,7 @@ flowchart TD
     S4_3 --> S4_4["4.4 Calculate EBITDA & EBIT"]:::process
     S4_4 --> S4_5["4.5 Interest, tax & net income"]:::process
 
-    S4_5 --> CP4a{{"Margins reasonable?<br/>No formula errors?"}}:::decision
+    S4_5 --> CP4a{"Margins reasonable?<br/>No formula errors?"}:::decision
     CP4a -->|"No: missing assumption"| BACK_P3(["Return to Phase 3<br/>Step 3.4"]):::terminal
     CP4a -->|Yes| S4_BS
 
@@ -607,7 +607,7 @@ flowchart TD
     S4_8 --> S4_9["4.9 Retained earnings & equity"]:::process
     S4_9 --> S4_10["4.10 Assemble projected BS"]:::process
 
-    S4_10 --> CP4b{{"Assets = L + E<br/>for every period?"}}:::decision
+    S4_10 --> CP4b{"Assets = L + E<br/>for every period?"}:::decision
     CP4b -->|No| S4_6
     CP4b -->|Yes| S4_CF
 
@@ -617,7 +617,7 @@ flowchart TD
     S4_12 --> S4_13["4.13 CFF: debt, dividends, equity"]:::process
     S4_13 --> S4_14["4.14 Ending cash = Beg + CFO + CFI + CFF"]:::process
 
-    S4_14 --> CP4c{{"CF ending cash<br/>= BS cash?"}}:::decision
+    S4_14 --> CP4c{"CF ending cash<br/>= BS cash?"}:::decision
     CP4c -->|No| S4_11
     CP4c -->|Yes| S4_DCF
 
@@ -627,7 +627,7 @@ flowchart TD
     S4_16 --> S4_17["4.17 Discount UFCF to present value"]:::process
     S4_17 --> S4_18["4.18 Terminal value<br/>Gordon Growth + Exit Multiple"]:::process
 
-    S4_18 --> CP4d{{"TV methods within<br/>20% of each other?"}}:::decision
+    S4_18 --> CP4d{"TV methods within<br/>20% of each other?"}:::decision
     CP4d -->|"No: investigate"| S4_16
     CP4d -->|Yes| S4_19[/"4.19 EV → Equity Value bridge<br/>EV - Net Debt = Equity Value"/]:::io
 
@@ -678,7 +678,7 @@ flowchart TD
     S5_7 --> S5_8["5.8 Reasonableness checks<br/>Rev &gt; 0 · margins in range · g &lt; WACC"]:::process
     S5_8 --> S5_9["5.9 Master check cell + break test"]:::process
 
-    S5_9 --> CP5a{{"All structural checks PASS?<br/>Break test confirms<br/>master check works?"}}:::decision
+    S5_9 --> CP5a{"All structural checks PASS?<br/>Break test confirms<br/>master check works?"}:::decision
     CP5a -->|"No: build issue"| BACK_P4(["Return to Phase 4"]):::terminal
     CP5a -->|"No: assumption issue"| BACK_P3(["Return to Phase 3"]):::terminal
     CP5a -->|Yes| S5_10["5.10 Scope-vs-model alignment"]:::process
@@ -688,7 +688,7 @@ flowchart TD
     S5_13 --> S5_14[/"5.14 Build Executive Dashboard"/]:::io
     S5_14 --> S5_15["5.15 Embed checks in Dashboard"]:::process
 
-    S5_15 --> CP5b{{"Dashboard self-contained?<br/>Enhanced checks PASS?"}}:::decision
+    S5_15 --> CP5b{"Dashboard self-contained?<br/>Enhanced checks PASS?"}:::decision
     CP5b -->|No| S5_10
     CP5b -->|Yes| P5_END(["End Phase 5"]):::terminal</pre>
                 <div class="diagram-placeholder" id="placeholder-5">
@@ -734,7 +734,7 @@ flowchart TD
 
     S6_3 --> S6_STRESS(["Stress Testing"]):::sub
     S6_STRESS --> S6_4["6.4 Extreme value tests<br/>0% growth, 0% margin, max leverage"]:::process
-    S6_4 --> S6_5{{"Model breaks under<br/>extreme values?"}}:::decision
+    S6_4 --> S6_5{"Model breaks under<br/>extreme values?"}:::decision
     S6_5 -->|"Yes: structural"| BACK_P2(["Return to Phase 2:<br/>Restructure"]):::terminal
     S6_5 -->|No| S6_6["6.6 Circular reference stability test"]:::process
     S6_6 --> S6_10["6.10 Verify sensitivity labels & directions"]:::process
@@ -746,7 +746,7 @@ flowchart TD
     S6_9 --> S6_12["6.12 Cold read: Cover + Summary only"]:::process
     S6_12 --> S6_13["6.13 Reviewer simulation protocol<br/>Trace every claim to its source cell"]:::process
 
-    S6_13 --> CP6{{"Sensitivities complete?<br/>Scenarios documented?<br/>Narrative written?<br/>ALL CHECKS STILL PASS?"}}:::decision
+    S6_13 --> CP6{"Sensitivities complete?<br/>Scenarios documented?<br/>Narrative written?<br/>ALL CHECKS STILL PASS?"}:::decision
     CP6 -->|"No: assumption issue"| BACK_P3(["Return to Phase 3"]):::terminal
     CP6 -->|"No: check fails"| BACK_P4(["Return to Phase 4"]):::terminal
     CP6 -->|Yes| P6_END(["End Phase 6"]):::terminal</pre>
@@ -789,7 +789,7 @@ flowchart TD
 
     C_START --> C_ID["7.1 Identify the circular loop<br/>Interest → Debt → CF → NI → Interest"]:::process
 
-    C_ID --> C_DEC{{"Avoid or solve?"}}:::decision
+    C_ID --> C_DEC{"Avoid or solve?"}:::decision
 
     C_DEC -->|"Simple model<br/>(DCF, M&A)"| C_AVOID["7.3 Method A: AVOID<br/>Use beginning-of-period balance<br/>for interest calculation"]:::methodA
     C_DEC -->|"Advanced model<br/>(LBO, PF)"| C_SOLVE_1["7.4 Enable iterative calculation<br/>File → Options → Formulas<br/>Iterations: 100 · Change: 0.001"]:::methodB
@@ -797,7 +797,7 @@ flowchart TD
     C_SOLVE_2 --> C_SOLVE_3["7.6 Build toggle switch<br/>1 = ON (iterative), 0 = OFF (break)"]:::methodB
     C_SOLVE_3 --> C_SOLVE_4["7.7 Test convergence<br/>Change input → press F9 repeatedly<br/>Verify stable answer"]:::methodB
 
-    C_SOLVE_4 --> C_CONV{{"Converges to<br/>same answer?"}}:::decision
+    C_SOLVE_4 --> C_CONV{"Converges to<br/>same answer?"}:::decision
     C_CONV -->|"No: unstable"| C_SOLVE_1
     C_CONV -->|Yes| C_DOC["7.8 Document on Cover tab"]:::process
     C_AVOID --> C_DOC
