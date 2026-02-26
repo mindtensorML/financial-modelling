@@ -1,0 +1,358 @@
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#1a365d', 'primaryTextColor': '#fff', 'primaryBorderColor': '#2b6cb0', 'lineColor': '#4a5568', 'secondaryColor': '#f7fafc', 'tertiaryColor': '#ebf8ff', 'fontSize': '13px'}, 'flowchart': {'curve': 'basis', 'padding': 16, 'nodeSpacing': 25, 'rankSpacing': 40}}}%%
+
+flowchart TB
+    %% ════════════════════════════════════
+    %% START
+    %% ════════════════════════════════════
+    START(["🟢 START: New Financial Model"])
+    style START fill:#276749,stroke:#22543d,color:#fff,stroke-width:2px
+
+    START --> P1_START
+
+    %% ════════════════════════════════════
+    %% PHASE 1: SCOPING
+    %% ════════════════════════════════════
+    subgraph S1["PHASE 1: SCOPING"]
+        direction TB
+        P1_START(["Begin Phase 1"])
+        style P1_START fill:#2b6cb0,stroke:#2c5282,color:#fff
+
+        P1_START --> S1_1["1.1 State the decision in one sentence"]
+        S1_1 --> S1_2["1.2 Identify primary audience"]
+        S1_2 --> S1_3["1.3 Define key output metrics ≤ 3"]
+        S1_3 --> S1_4["1.4 Set time horizon"]
+        S1_4 --> S1_5["1.5 Define periodicity"]
+        S1_5 --> S1_6["1.6 List known constraints"]
+        S1_6 --> S1_7["1.7 Define exclusions + impact notes"]
+
+        S1_7 --> CP1{{"Decision defined?<br/>Metrics ≤ 3?<br/>Constraints documented?"}}
+        CP1 -->|No| S1_1
+        CP1 -->|Yes| S1_8["1.8 Write scope summary"]
+        S1_8 --> S1_9[/"1.9 Get scope sign-off"/]
+
+        S1_9 --> CP1b{{"Sign-off obtained?"}}
+        CP1b -->|No| S1_8
+        CP1b -->|Yes| P1_END(["End Phase 1"])
+        style P1_END fill:#2b6cb0,stroke:#2c5282,color:#fff
+    end
+    style S1 fill:#ebf8ff,stroke:#2b6cb0,stroke-width:2px,color:#1a365d
+
+    P1_END --> P2_START
+
+    %% ════════════════════════════════════
+    %% PHASE 2: ARCHITECTURE
+    %% ════════════════════════════════════
+    subgraph S2["PHASE 2: ARCHITECTURE"]
+        direction TB
+        P2_START(["Begin Phase 2"])
+        style P2_START fill:#2f855a,stroke:#276749,color:#fff
+
+        P2_START --> S2_1["2.1 Define tab map and order"]
+        S2_1 --> S2_2["2.2 Name tabs descriptively"]
+        S2_2 --> S2_3["2.3 Assign tab color categories"]
+        S2_3 --> S2_4["2.4 Standardize column structure<br/>Same year = same column on every tab"]
+        S2_4 --> S2_5["2.5 Set row structure with logical blocks"]
+        S2_5 --> S2_6["2.6 Establish sign conventions"]
+        S2_6 --> S2_7["2.7 Set formatting standards<br/>Blue = input · Black = formula · Green = cross-tab"]
+        S2_7 --> S2_8["2.8 Map the calculation flow<br/>Assumptions → IS → BS → CF → DCF → Outputs"]
+        S2_8 --> S2_9["2.9 Flag potential circular references"]
+        S2_9 --> S2_10["2.10 Define version control + change log"]
+        S2_10 --> S2_11["2.11 Design Timing & Flags tab"]
+        S2_11 --> S2_12["2.12 Plan Table of Contents tab"]
+
+        S2_12 --> CP2{{"Tab map ordered?<br/>Columns aligned?<br/>Sign convention set?<br/>Flow mapped?"}}
+        CP2 -->|No| S2_1
+        CP2 -->|Yes| P2_END(["End Phase 2"])
+        style P2_END fill:#2f855a,stroke:#276749,color:#fff
+    end
+    style S2 fill:#f0fff4,stroke:#38a169,stroke-width:2px,color:#1a365d
+
+    P2_END --> P3_START
+
+    %% ════════════════════════════════════
+    %% PHASE 3: INPUTS & ASSUMPTIONS
+    %% ════════════════════════════════════
+    subgraph S3["PHASE 3: INPUTS & ASSUMPTIONS"]
+        direction TB
+        P3_START(["Begin Phase 3"])
+        style P3_START fill:#b7791f,stroke:#975a16,color:#fff
+
+        P3_START --> S3_1[/"3.1 Gather source documents"/]
+        S3_1 --> S3_2["3.2 Enter historical financial statements"]
+        S3_2 --> S3_3["3.3 Calculate historical ratios & growth"]
+        S3_3 --> S3_4["3.4 Build centralized assumption block"]
+        S3_4 --> S3_5["3.5 Source & justify each assumption"]
+        S3_5 --> S3_6["3.6 Set boundaries: Low / Base / High"]
+        S3_6 --> S3_7["3.7 Build scenario toggle<br/>CHOOSE: 1=Low, 2=Base, 3=High"]
+        S3_7 --> S3_8["3.8 Cross-check historical data"]
+        S3_8 --> S3_9["3.9 Document all data transformations"]
+
+        S3_9 --> CP3{{"BS balances historically?<br/>All assumptions sourced?<br/>Scenario toggle works?<br/>No hardcoded numbers<br/>outside assumption block?"}}
+        CP3 -->|No| S3_4
+        CP3 -->|Yes| S3_10["3.10 Verify legal & regulatory basis<br/>Tax rates, NOLs, depreciation"]
+        S3_10 --> S3_11["3.11 Document legal basis per assumption"]
+        S3_11 --> S3_12["3.12 Separate macro from operating assumptions"]
+        S3_12 --> S3_13["3.13 Build inflation index layer"]
+        S3_13 --> S3_14["3.14 Handle multi-currency exposures"]
+
+        S3_14 --> CP3b{{"Inflation centralized?<br/>FX projected?<br/>All currencies labeled?"}}
+        CP3b -->|No| S3_12
+        CP3b -->|Yes| P3_END(["End Phase 3"])
+        style P3_END fill:#b7791f,stroke:#975a16,color:#fff
+    end
+    style S3 fill:#fffff0,stroke:#d69e2e,stroke-width:2px,color:#1a365d
+
+    P3_END --> P4_START
+
+    %% ════════════════════════════════════
+    %% PHASE 4: BUILD
+    %% ════════════════════════════════════
+    subgraph S4["PHASE 4: BUILD"]
+        direction TB
+        P4_START(["Begin Phase 4"])
+        style P4_START fill:#c53030,stroke:#9b2c2c,color:#fff
+
+        %% --- Income Statement ---
+        P4_START --> S4_IS(["── Income Statement ──"])
+        style S4_IS fill:#feb2b2,stroke:#c53030,color:#1a365d
+        S4_IS --> S4_1["4.1 Build revenue line<br/>Prior year × 1 + growth rate"]
+        S4_1 --> S4_2["4.2 COGS & gross profit"]
+        S4_2 --> S4_3["4.3 Operating expenses by driver"]
+        S4_3 --> S4_4["4.4 Calculate EBITDA & EBIT"]
+        S4_4 --> S4_5["4.5 Interest, tax & net income"]
+
+        S4_5 --> CP4a{{"Margins reasonable?<br/>No formula errors?"}}
+        CP4a -->|No: missing assumption| S3_4
+        CP4a -->|Yes| S4_BS
+
+        %% --- Balance Sheet ---
+        S4_BS(["── Balance Sheet ──"])
+        style S4_BS fill:#feb2b2,stroke:#c53030,color:#1a365d
+        S4_BS --> S4_6["4.6 Working capital: AR, Inv, AP"]
+        S4_6 --> S4_7["4.7 PP&E roll-forward schedule"]
+        S4_7 --> S4_8["4.8 Debt schedule"]
+        S4_8 --> S4_9["4.9 Retained earnings & equity"]
+        S4_9 --> S4_10["4.10 Assemble projected BS"]
+
+        S4_10 --> CP4b{{"Assets = L + E<br/>for every period?"}}
+        CP4b -->|No| S4_6
+        CP4b -->|Yes| S4_CF
+
+        %% --- Cash Flow ---
+        S4_CF(["── Cash Flow Statement ──"])
+        style S4_CF fill:#feb2b2,stroke:#c53030,color:#1a365d
+        S4_CF --> S4_11["4.11 CFO: NI + D&A ± ΔWC"]
+        S4_11 --> S4_12["4.12 CFI: CapEx, asset sales"]
+        S4_12 --> S4_13["4.13 CFF: debt, dividends, equity"]
+        S4_13 --> S4_14["4.14 Ending cash = Beg + CFO + CFI + CFF"]
+
+        S4_14 --> CP4c{{"CF ending cash<br/>= BS cash?"}}
+        CP4c -->|No| S4_11
+        CP4c -->|Yes| S4_DCF
+
+        %% --- DCF ---
+        S4_DCF(["── DCF Valuation ──"])
+        style S4_DCF fill:#feb2b2,stroke:#c53030,color:#1a365d
+        S4_DCF --> S4_15["4.15 Calculate UFCF<br/>EBIT × 1-t + D&A - CapEx - ΔNWC"]
+        S4_15 --> S4_16["4.16 Build WACC"]
+        S4_16 --> S4_17["4.17 Discount UFCF to present value"]
+        S4_17 --> S4_18["4.18 Terminal value<br/>Gordon Growth + Exit Multiple"]
+
+        S4_18 --> CP4d{{"TV methods within<br/>20% of each other?"}}
+        CP4d -->|No: investigate| S4_16
+        CP4d -->|Yes| S4_19[/"4.19 EV → Equity Value bridge<br/>EV - Net Debt = Equity Value"/]
+
+        S4_19 --> P4_END(["End Phase 4"])
+        style P4_END fill:#c53030,stroke:#9b2c2c,color:#fff
+    end
+    style S4 fill:#fff5f5,stroke:#e53e3e,stroke-width:2px,color:#1a365d
+
+    P4_END --> P5_START
+
+    %% ════════════════════════════════════
+    %% PHASE 5: OUTPUTS & CHECKS
+    %% ════════════════════════════════════
+    subgraph S5["PHASE 5: OUTPUTS & CHECKS"]
+        direction TB
+        P5_START(["Begin Phase 5"])
+        style P5_START fill:#6b46c1,stroke:#553c9a,color:#fff
+
+        P5_START --> S5_1[/"5.1 Build Output Summary tab"/]
+        S5_1 --> S5_2[/"5.2 Valuation range · football field"/]
+        S5_2 --> S5_3[/"5.3 Key ratio outputs"/]
+
+        S5_3 --> S5_CHK(["── Error Checking System ──"])
+        style S5_CHK fill:#d6bcfa,stroke:#6b46c1,color:#1a365d
+        S5_CHK --> S5_4["5.4 Build dedicated checks block"]
+        S5_4 --> S5_5["5.5 BS balance check: ABS A-L-E < 0.01"]
+        S5_5 --> S5_6["5.6 Cash flow tie: CF cash = BS cash"]
+        S5_6 --> S5_7["5.7 Net income tie: IS ↔ CF"]
+        S5_7 --> S5_8["5.8 Reasonableness checks<br/>Rev > 0 · margins in range · g < WACC"]
+        S5_8 --> S5_9["5.9 Master check cell + break test"]
+
+        S5_9 --> CP5a{{"All structural checks PASS?<br/>Break test confirms<br/>master check works?"}}
+        CP5a -->|"No: build issue"| S4_1
+        CP5a -->|"No: assumption issue"| S3_4
+        CP5a -->|Yes| S5_10["5.10 Scope-vs-model alignment"]
+        S5_10 --> S5_11["5.11 Distributable CF flags"]
+        S5_11 --> S5_12["5.12 Regulatory assumption checks"]
+        S5_12 --> S5_13["5.13 Coverage & metric cliff detection"]
+        S5_13 --> S5_14[/"5.14 Build Executive Dashboard"/]
+        S5_14 --> S5_15["5.15 Embed checks in Dashboard"]
+
+        S5_15 --> CP5b{{"Dashboard self-contained?<br/>Enhanced checks PASS?"}}
+        CP5b -->|No| S5_10
+        CP5b -->|Yes| P5_END(["End Phase 5"])
+        style P5_END fill:#6b46c1,stroke:#553c9a,color:#fff
+    end
+    style S5 fill:#faf5ff,stroke:#805ad5,stroke-width:2px,color:#1a365d
+
+    P5_END --> P6_START
+
+    %% ════════════════════════════════════
+    %% PHASE 6: STRESS & COMMUNICATE
+    %% ════════════════════════════════════
+    subgraph S6["PHASE 6: STRESS & COMMUNICATE"]
+        direction TB
+        P6_START(["Begin Phase 6"])
+        style P6_START fill:#c05621,stroke:#9c4221,color:#fff
+
+        %% --- Sensitivity ---
+        P6_START --> S6_SENS(["── Sensitivity Analysis ──"])
+        style S6_SENS fill:#fbd38d,stroke:#c05621,color:#1a365d
+        S6_SENS --> S6_1["6.1 Build 2-way sensitivity table"]
+        S6_1 --> S6_2["6.2 Build 1-way sensitivities / tornado"]
+        S6_2 --> S6_3["6.3 Run full scenarios: Low / Base / High"]
+
+        %% --- Stress ---
+        S6_3 --> S6_STRESS(["── Stress Testing ──"])
+        style S6_STRESS fill:#fbd38d,stroke:#c05621,color:#1a365d
+        S6_STRESS --> S6_4["6.4 Extreme value tests<br/>0% growth, 0% margin, max leverage"]
+        S6_4 --> S6_5{{"Model breaks under<br/>extreme values?"}}
+        S6_5 -->|"Yes: structural"| P2_START
+        S6_5 -->|No| S6_6["6.6 Circular reference stability test"]
+        S6_6 --> S6_10["6.10 Verify sensitivity labels & directions"]
+        S6_10 --> S6_11["6.11 Multi-factor stress test<br/>3-4 adverse assumptions at once"]
+
+        %% --- Package ---
+        S6_11 --> S6_PKG(["── Packaging ──"])
+        style S6_PKG fill:#fbd38d,stroke:#c05621,color:#1a365d
+        S6_PKG --> S6_7["6.7 Write model narrative on Cover"]
+        S6_7 --> S6_9["6.9 Prepare handoff checklist"]
+        S6_9 --> S6_12["6.12 Cold read: Cover + Summary only"]
+        S6_12 --> S6_13["6.13 Reviewer simulation protocol<br/>Trace every claim to its source cell"]
+
+        S6_13 --> CP6{{"Sensitivities complete?<br/>Scenarios documented?<br/>Narrative written?<br/>ALL CHECKS STILL PASS?"}}
+        CP6 -->|"No: assumption issue"| S3_4
+        CP6 -->|"No: check fails"| S4_1
+        CP6 -->|Yes| P6_END(["End Phase 6"])
+        style P6_END fill:#c05621,stroke:#9c4221,color:#fff
+    end
+    style S6 fill:#fff5eb,stroke:#dd6b20,stroke-width:2px,color:#1a365d
+
+    %% ════════════════════════════════════
+    %% FINAL RECONCILIATION + END
+    %% ════════════════════════════════════
+    P6_END --> RECONCILE["1.10 Final scope reconciliation<br/>Verify Cover matches model output"]
+    RECONCILE --> CP_FINAL{{"Every dollar on Cover<br/>matches model?<br/>Exclusions truly absent?<br/>Narrative matches conclusion?"}}
+    CP_FINAL -->|No| S1_8
+    CP_FINAL -->|Yes| STOP(["🔴 END: Model Complete & Delivered"])
+    style STOP fill:#9b2c2c,stroke:#742a2a,color:#fff,stroke-width:2px
+
+    %% ════════════════════════════════════
+    %% EXTERNAL LOOP: STAKEHOLDER CHANGE
+    %% ════════════════════════════════════
+    STAKEHOLDER(["⟲ Stakeholder reframes<br/>the decision question"])
+    style STAKEHOLDER fill:#fc8181,stroke:#e53e3e,color:#1a365d,stroke-width:2px
+    STAKEHOLDER -.->|"Return to Phase 1<br/>Cascade changes forward"| P1_START
+
+    %% ════════════════════════════════════
+    %% CIRCULAR REFERENCES (Tab 7)
+    %% ════════════════════════════════════
+    subgraph S7["TAB 7: CIRCULAR REFERENCES"]
+        direction TB
+        C_START(["Circularity flagged in Step 2.9"])
+        style C_START fill:#718096,stroke:#4a5568,color:#fff
+
+        C_START --> C_ID["7.1 Identify the circular loop<br/>Interest → Debt → CF → NI → Interest"]
+
+        C_ID --> C_DEC{{"Avoid or solve?"}}
+
+        C_DEC -->|"Simple model"| C_AVOID["7.3 Method A: AVOID<br/>Use beginning-of-period balance"]
+        C_DEC -->|"LBO / PF / Advanced"| C_SOLVE_1["7.4 Enable iterative calculation<br/>Iterations: 100 · Change: 0.001"]
+        C_SOLVE_1 --> C_SOLVE_2["7.5 Build formula with average debt"]
+        C_SOLVE_2 --> C_SOLVE_3["7.6 Build toggle switch: 1=ON 0=OFF"]
+        C_SOLVE_3 --> C_SOLVE_4["7.7 Test convergence: change input → F9"]
+
+        C_SOLVE_4 --> C_CONV{{"Converges to<br/>same answer?"}}
+        C_CONV -->|No: unstable| C_SOLVE_1
+        C_CONV -->|Yes| C_DOC["7.8 Document on Cover tab"]
+        C_AVOID --> C_DOC
+
+        C_DOC --> C_END(["Resume Build phase"])
+        style C_END fill:#718096,stroke:#4a5568,color:#fff
+    end
+    style S7 fill:#f7fafc,stroke:#718096,stroke-width:2px,color:#1a365d
+
+    S2_9 -.->|"Flagged circularity"| C_START
+    C_END -.->|"Return"| S4_5
+
+    %% ════════════════════════════════════
+    %% ADAPTATION GUIDE (Tab 8)
+    %% ════════════════════════════════════
+    subgraph S8["TAB 8: ADAPTATION GUIDE · Same 6 phases, different engines and metrics"]
+        direction TB
+        subgraph ROW1[" "]
+            direction LR
+            A1["<b>LBO</b><br/>Engine: Debt Schedule<br/>Output: IRR, MOIC"]
+            A2["<b>Project Finance</b><br/>Engine: Cash Waterfall<br/>Output: Equity IRR, DSCR"]
+            A3["<b>M&A</b><br/>Engine: Pro Forma IS<br/>Output: Accretion/Dilution"]
+            A4["<b>REIT</b><br/>Engine: Property NOI<br/>Output: NAV, FFO/AFFO"]
+        end
+        subgraph ROW2[" "]
+            direction LR
+            A5["<b>CRE Acquisition</b><br/>Engine: NOI Waterfall<br/>Output: Levered IRR, CoC"]
+            A6["<b>Banks</b><br/>Engine: Balance Sheet<br/>Output: EPS, ROTCE, CET1"]
+            A7["<b>Startup / VC</b><br/>Engine: Burn + Cap Table<br/>Output: IRR, Runway"]
+            A8["<b>Mining</b><br/>Engine: Mine Plan<br/>Output: NAV, AISC"]
+        end
+        subgraph ROW3[" "]
+            direction LR
+            A9["<b>Distressed</b><br/>Engine: Claims Waterfall<br/>Output: Recovery %"]
+            A10["<b>Pharma</b><br/>Engine: Pipeline rNPV<br/>Output: Risk-adj NPV"]
+            A11["<b>Insurance</b><br/>Engine: Combined Ratio<br/>Output: ROE, BV/Share"]
+            A12["<b>SaaS · Shipping<br/>Renewables · PPP<br/>Utilities</b>"]
+        end
+    end
+    style S8 fill:#f7fafc,stroke:#4a5568,stroke-width:2px,color:#1a365d
+    style ROW1 fill:none,stroke:none
+    style ROW2 fill:none,stroke:none
+    style ROW3 fill:none,stroke:none
+    style A1 fill:#e2e8f0,stroke:#4a5568,color:#1a365d
+    style A2 fill:#e2e8f0,stroke:#4a5568,color:#1a365d
+    style A3 fill:#e2e8f0,stroke:#4a5568,color:#1a365d
+    style A4 fill:#e2e8f0,stroke:#4a5568,color:#1a365d
+    style A5 fill:#e2e8f0,stroke:#4a5568,color:#1a365d
+    style A6 fill:#e2e8f0,stroke:#4a5568,color:#1a365d
+    style A7 fill:#e2e8f0,stroke:#4a5568,color:#1a365d
+    style A8 fill:#e2e8f0,stroke:#4a5568,color:#1a365d
+    style A9 fill:#e2e8f0,stroke:#4a5568,color:#1a365d
+    style A10 fill:#e2e8f0,stroke:#4a5568,color:#1a365d
+    style A11 fill:#e2e8f0,stroke:#4a5568,color:#1a365d
+    style A12 fill:#e2e8f0,stroke:#4a5568,color:#1a365d
+
+    %% ════════════════════════════════════
+    %% LEGEND
+    %% ════════════════════════════════════
+    subgraph LEGEND["FLOWCHART SYMBOL LEGEND"]
+        direction LR
+        L_START(["Rounded = Start / End terminal"])
+        L_PROC["Rectangle = Process step"]
+        L_DEC{{"Diamond = Decision / Checkpoint"}}
+        L_IO[/"Parallelogram = Input / Output"/]
+    end
+    style LEGEND fill:#f7fafc,stroke:#a0aec0,color:#4a5568
+    style L_START fill:#276749,stroke:#22543d,color:#fff
+    style L_PROC fill:#e2e8f0,stroke:#4a5568,color:#1a365d
+    style L_DEC fill:#fefcbf,stroke:#d69e2e,color:#1a365d
+    style L_IO fill:#fed7e2,stroke:#d53f8c,color:#1a365d
