@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Modeling Playbook v8 — Standards-Compliant Flowchart</title>
+    <meta name="description" content="Financial Modeling Playbook: 6 phases, 91 steps, 13 checkpoints, 5 feedback loops, 12+ model types. Standards-compliant flowchart with proper symbols.">
+    
+    <style>
+    /* ── Reset & Base ──────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        background: #f5f5f5; color: #333; line-height: 1.6;
+    }
+
+    /* ── Hero ──────────────────────────────────────────────── */
+    .hero {
+        background: linear-gradient(135deg, #1a365d 0%, #2b6cb0 50%, #3182ce 100%);
+        color: #fff; padding: 48px 24px 36px; text-align: center;
+    }
+    .hero h1 { font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
+    .hero .subtitle { font-size: 1.1rem; opacity: 0.9; margin-bottom: 32px; }
+    .stat-boxes {
+        display: flex; justify-content: center; gap: 16px; flex-wrap: wrap;
+        margin-bottom: 32px;
+    }
+    .stat-box {
+        background: rgba(255,255,255,0.15); border-radius: 12px; padding: 16px 24px;
+        min-width: 120px; backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.2);
+    }
+    .stat-box .num { font-size: 2rem; font-weight: 700; display: block; }
+    .stat-box .label { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.85; }
+
+    /* ── Stacked bar ───────────────────────────────────────── */
+    .stacked-bar-container { max-width: 700px; margin: 0 auto 28px; }
+    .stacked-bar-container h3 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; opacity: 0.9; }
+    .stacked-bar {
+        display: flex; border-radius: 8px; overflow: hidden; height: 32px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    .stacked-bar .seg { display: flex; align-items: center; justify-content: center;
+        font-size: 0.75rem; font-weight: 600; color: #333; white-space: nowrap; }
+    .bar-legend { display: flex; justify-content: center; gap: 20px; margin-top: 10px; font-size: 0.8rem; flex-wrap: wrap; }
+    .bar-legend span { display: flex; align-items: center; gap: 6px; }
+    .bar-legend .dot { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+
+    /* ── Donut chart ───────────────────────────────────────── */
+    .charts-row { display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; align-items: flex-start; }
+    .donut-container { text-align: center; }
+    .donut-container h3 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; opacity: 0.9; }
+    .donut-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 12px; font-size: 0.78rem; }
+    .donut-legend span { display: flex; align-items: center; gap: 5px; }
+
+    /* ── Tabs ──────────────────────────────────────────────── */
+    .tab-bar {
+        position: sticky; top: 0; z-index: 100; background: #fff;
+        border-bottom: 2px solid #e0e0e0; display: flex; overflow-x: auto;
+        padding: 0 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .tab-bar::-webkit-scrollbar { height: 3px; }
+    .tab-bar::-webkit-scrollbar-thumb { background: #1a365d; border-radius: 2px; }
+    .tab-btn {
+        background: none; border: none; padding: 14px 20px; font-size: 0.9rem;
+        font-weight: 500; color: #666; cursor: pointer; white-space: nowrap;
+        border-bottom: 3px solid transparent; transition: all 0.2s;
+        font-family: inherit;
+    }
+    .tab-btn:hover { color: #1a365d; background: #ebf8ff; }
+    .tab-btn.active { color: #1a365d; border-bottom-color: #2b6cb0; font-weight: 600; }
+
+    /* ── Tab content ───────────────────────────────────────── */
+    .tab-content { display: none; padding: 24px; max-width: 1200px; margin: 0 auto; }
+    .tab-content.active { display: block; }
+
+    /* ── Card ──────────────────────────────────────────────── */
+    .card {
+        background: #fff; border-radius: 12px; padding: 28px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06); margin-bottom: 24px;
+    }
+    .card-header {
+        display: flex; align-items: center; gap: 12px; margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+    .card-header h2 { font-size: 1.4rem; color: #333; }
+    .badge {
+        padding: 4px 12px; border-radius: 20px; font-size: 0.75rem;
+        font-weight: 600; color: #fff;
+    }
+    .task-count { font-size: 0.85rem; color: #888; }
+
+    /* ── Diagram area ──────────────────────────────────────── */
+    .diagram-wrapper {
+        border: 1px solid #e0e0e0; border-radius: 8px; padding: 16px;
+        overflow-x: auto; background: #fafafa; position: relative;
+        min-height: 200px;
+    }
+    .diagram-wrapper .mermaid { min-width: fit-content; }
+    .diagram-wrapper svg { max-width: none !important; transform-origin: top left; }
+    .diagram-wrapper.fitted { overflow: hidden; }
+    .diagram-actions {
+        display: flex; gap: 8px; margin-top: 12px; justify-content: flex-end;
+    }
+    .btn {
+        padding: 8px 16px; border-radius: 6px; border: 1px solid #ddd;
+        background: #fff; color: #333; cursor: pointer; font-size: 0.82rem;
+        font-family: inherit; transition: all 0.15s; display: inline-flex;
+        align-items: center; gap: 6px;
+    }
+    .btn:hover { background: #ebf8ff; border-color: #2b6cb0; color: #1a365d; }
+    .btn-primary { background: #1a365d; color: #fff; border-color: #1a365d; }
+    .btn-primary:hover { background: #2b6cb0; }
+
+    /* ── Lightbox ──────────────────────────────────────────── */
+    .lightbox {
+        display: none; position: fixed; inset: 0; z-index: 1000;
+        background: rgba(0,0,0,0.85); justify-content: center; align-items: center;
+        flex-direction: column;
+    }
+    .lightbox.open { display: flex; }
+    .lightbox-controls {
+        position: absolute; top: 16px; right: 16px; display: flex; gap: 8px; z-index: 1001;
+    }
+    .lightbox-controls button {
+        width: 40px; height: 40px; border-radius: 50%; border: none;
+        background: rgba(255,255,255,0.2); color: #fff; font-size: 1.2rem;
+        cursor: pointer; transition: background 0.2s;
+    }
+    .lightbox-controls button:hover { background: rgba(255,255,255,0.4); }
+    .lightbox-canvas {
+        overflow: auto; max-width: 95vw; max-height: 90vh; cursor: grab;
+        border-radius: 8px;
+    }
+    .lightbox-canvas:active { cursor: grabbing; }
+    .lightbox-canvas svg { background: #fff; border-radius: 8px; display: block; }
+    .lightbox-zoom-info {
+        position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
+        background: rgba(0,0,0,0.6); color: #fff; padding: 6px 14px;
+        border-radius: 20px; font-size: 0.8rem;
+    }
+
+    /* ── Summary tab charts ────────────────────────────────── */
+    .summary-grid {
+        display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 24px;
+    }
+    .summary-card {
+        background: #fff; border-radius: 12px; padding: 24px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    .summary-card h3 { font-size: 1rem; color: #1a365d; margin-bottom: 16px; }
+    .bar-chart { display: flex; flex-direction: column; gap: 10px; }
+    .bar-row { display: flex; align-items: center; gap: 10px; }
+    .bar-label { width: 130px; font-size: 0.82rem; text-align: right; flex-shrink: 0; }
+    .bar-track { flex: 1; background: #f0f0f0; border-radius: 4px; height: 24px; position: relative; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 4px; display: flex; align-items: center; padding-left: 8px;
+        font-size: 0.75rem; font-weight: 600; color: #333; transition: width 0.6s ease; }
+    .bar-value { font-size: 0.82rem; width: 36px; text-align: left; color: #666; flex-shrink: 0; }
+
+    /* ── Legend ─────────────────────────────────────────────── */
+    .legend-section { margin-top: 24px; }
+    .legend-grid {
+        display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+    }
+    .legend-card { padding: 20px; }
+    .legend-card h4 { font-size: 0.9rem; color: #1a365d; margin-bottom: 12px; }
+    .legend-item {
+        display: flex; align-items: center; gap: 10px; padding: 6px 0;
+        font-size: 0.82rem;
+    }
+    .legend-swatch {
+        width: 28px; height: 18px; border-radius: 4px; border: 1px solid #ccc; flex-shrink: 0;
+    }
+
+    /* ── Scroll animations ─────────────────────────────────── */
+    .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.5s ease, transform 0.5s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* ── Footer ────────────────────────────────────────────── */
+    .footer {
+        text-align: center; padding: 24px; color: #999; font-size: 0.8rem;
+        border-top: 1px solid #eee; margin-top: 32px; background: #fff;
+    }
+
+    /* ── Responsive ────────────────────────────────────────── */
+    @media (max-width: 1024px) {
+        .hero h1 { font-size: 1.6rem; }
+        .stat-boxes { gap: 10px; }
+        .stat-box { min-width: 100px; padding: 12px 16px; }
+        .stat-box .num { font-size: 1.6rem; }
+        .tab-content { padding: 16px; }
+        .card { padding: 20px; }
+    }
+    @media (max-width: 768px) {
+        .hero { padding: 32px 16px 24px; }
+        .hero h1 { font-size: 1.3rem; }
+        .hero .subtitle { font-size: 0.9rem; }
+        .stat-boxes { gap: 8px; }
+        .stat-box { min-width: 80px; padding: 10px 12px; }
+        .stat-box .num { font-size: 1.3rem; }
+        .stat-box .label { font-size: 0.7rem; }
+        .tab-bar { padding: 0 8px; }
+        .tab-btn { padding: 12px 14px; font-size: 0.82rem; }
+        .card-header h2 { font-size: 1.1rem; }
+        .charts-row { gap: 20px; }
+        .summary-grid { grid-template-columns: 1fr; }
+        .legend-grid { grid-template-columns: 1fr; }
+        .stacked-bar-container { max-width: 100%; }
+    }
+    </style>
+
+</head>
+<body>
+    
+    <section class="hero">
+        <h1>Financial Modeling Playbook v8</h1>
+        <p class="subtitle">6 Phases &nbsp;|&nbsp; 91 Steps &nbsp;|&nbsp; 13 Checkpoints &nbsp;|&nbsp; 12+ Model Types</p>
+
+        <div class="stat-boxes">
+            <div class="stat-box"><span class="num">91</span><span class="label">Steps</span></div>
+            <div class="stat-box"><span class="num">13</span><span class="label">Checkpoints</span></div>
+            <div class="stat-box"><span class="num">5</span><span class="label">Feedback Loops</span></div>
+            <div class="stat-box"><span class="num">6</span><span class="label">Phases</span></div>
+            <div class="stat-box"><span class="num">12+</span><span class="label">Model Types</span></div>
+        </div>
+
+        <div class="stacked-bar-container">
+            <h3>Steps by Phase</h3>
+            <div class="stacked-bar">
+                <div class="seg" style="width:10%;background:#bee3f8">P1: 9</div>
+                <div class="seg" style="width:13%;background:#c6f6d5">P2: 12</div>
+                <div class="seg" style="width:15%;background:#fefcbf">P3: 14</div>
+                <div class="seg" style="width:21%;background:#fed7d7">P4: 19</div>
+                <div class="seg" style="width:16%;background:#e9d8fd">P5: 15</div>
+                <div class="seg" style="width:14%;background:#feebc8">P6: 13</div>
+                <div class="seg" style="width:11%;background:#e2e8f0">CR: 8</div>
+            </div>
+            <div class="bar-legend">
+                <span><span class="dot" style="background:#bee3f8"></span>Scoping</span>
+                <span><span class="dot" style="background:#c6f6d5"></span>Architecture</span>
+                <span><span class="dot" style="background:#fefcbf"></span>Inputs</span>
+                <span><span class="dot" style="background:#fed7d7"></span>Build</span>
+                <span><span class="dot" style="background:#e9d8fd"></span>Outputs</span>
+                <span><span class="dot" style="background:#feebc8"></span>Stress</span>
+                <span><span class="dot" style="background:#e2e8f0"></span>Circular Refs</span>
+            </div>
+        </div>
+
+        <div class="charts-row">
+            <div class="donut-container">
+                <h3>Step Type Breakdown</h3>
+                <svg viewBox="0 0 180 180" width="180" height="180" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="90" cy="90" r="70" fill="none" stroke="#eee" stroke-width="24" />
+        <circle cx="90" cy="90" r="70" fill="none" stroke="#4299E1" stroke-width="24" stroke-dasharray="231.8 208.0" stroke-dashoffset="0.0" />
+        <circle cx="90" cy="90" r="70" fill="none" stroke="#F6AD55" stroke-width="24" stroke-dasharray="57.2 382.6" stroke-dashoffset="-231.8" />
+        <circle cx="90" cy="90" r="70" fill="none" stroke="#FC8181" stroke-width="24" stroke-dasharray="28.6 411.2" stroke-dashoffset="-289.0" />
+        <circle cx="90" cy="90" r="70" fill="none" stroke="#B794F4" stroke-width="24" stroke-dasharray="22.0 417.8" stroke-dashoffset="-317.6" />
+        <text x="90" y="84" text-anchor="middle" font-size="22" font-weight="700" fill="#fff">91</text>
+        <text x="90" y="102" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.8)">STEPS</text>
+    </svg>
+                <div class="donut-legend">
+                    <span><span class="dot" style="background:#4299E1"></span>Process 63</span>
+                    <span><span class="dot" style="background:#F6AD55"></span>Decision 13</span>
+                    <span><span class="dot" style="background:#FC8181"></span>I/O 8</span>
+                    <span><span class="dot" style="background:#B794F4"></span>Terminal 7</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <nav class="tab-bar">
+    <button class="tab-btn active" data-tab="tab-0">Overview</button>
+    <button class="tab-btn" data-tab="tab-1">1. Scoping</button>
+    <button class="tab-btn" data-tab="tab-2">2. Architecture</button>
+    <button class="tab-btn" data-tab="tab-3">3. Inputs</button>
+    <button class="tab-btn" data-tab="tab-4">4. Build</button>
+    <button class="tab-btn" data-tab="tab-5">5. Outputs</button>
+    <button class="tab-btn" data-tab="tab-6">6. Stress</button>
+    <button class="tab-btn" data-tab="tab-7">Circular Refs</button>
+    <button class="tab-btn" data-tab="tab-8">Adaptation</button>
+    <button class="tab-btn" data-tab="tab-9">Summary</button>
+</nav>
+    
+    <!-- ═══ TAB 0: OVERVIEW ═══ -->
+    <div class="tab-content active" id="tab-0">
+        <div class="card reveal">
+            <div class="card-header">
+                <h2>Master Flowchart: All 6 Phases</h2>
+            </div>
+            <div class="diagram-wrapper" data-diagram-idx="0">
+                <pre class="mermaid" style="display:none" data-idx="0">%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#1a365d', 'primaryTextColor': '#fff', 'primaryBorderColor': '#2b6cb0', 'lineColor': '#4a5568', 'secondaryColor': '#f7fafc', 'tertiaryColor': '#ebf8ff', 'fontSize': '13px'}, 'flowchart': {'curve': 'basis', 'padding': 16, 'nodeSpacing': 25, 'rankSpacing': 40}}}%%
+
+flowchart TD
+    classDef terminal fill:#276749,stroke:#22543d,color:#fff,stroke-width:2px
+    classDef phase1 fill:#ebf8ff,stroke:#2b6cb0,color:#1a365d
+    classDef phase2 fill:#f0fff4,stroke:#38a169,color:#1a365d
+    classDef phase3 fill:#fffff0,stroke:#d69e2e,color:#1a365d
+    classDef phase4 fill:#fff5f5,stroke:#e53e3e,color:#1a365d
+    classDef phase5 fill:#faf5ff,stroke:#805ad5,color:#1a365d
+    classDef phase6 fill:#fff5eb,stroke:#dd6b20,color:#1a365d
+    classDef decision fill:#fefcbf,stroke:#d69e2e,color:#1a365d
+    classDef circ fill:#f7fafc,stroke:#718096,color:#1a365d
+    classDef loop fill:#fc8181,stroke:#e53e3e,color:#1a365d,stroke-width:2px
+
+    START(["START: New Financial Model"]):::terminal
+
+    START --> P1
+
+    subgraph P1["PHASE 1: SCOPING — 9 steps, 2 checkpoints"]
+        direction LR
+        P1_A["Define decision, audience,<br/>metrics ≤ 3, horizon,<br/>periodicity, constraints"]
+        P1_B{{"Scope defined?<br/>Metrics ≤ 3?"}}:::decision
+        P1_C[/"Write scope summary<br/>& get sign-off"/]
+        P1_A --> P1_B -->|Yes| P1_C
+        P1_B -->|No| P1_A
+    end
+
+    P1 --> P2
+
+    subgraph P2["PHASE 2: ARCHITECTURE — 12 steps, 1 checkpoint"]
+        direction LR
+        P2_A["Tab map, naming, colors,<br/>column/row structure,<br/>sign conventions, formatting"]
+        P2_B["Map calculation flow<br/>Assumptions→IS→BS→CF→DCF→Outputs<br/>Flag circular refs"]
+        P2_C{{"Structure<br/>standardized?"}}:::decision
+        P2_A --> P2_B --> P2_C
+        P2_C -->|No| P2_A
+    end
+
+    P2 --> P3
+
+    subgraph P3["PHASE 3: INPUTS & ASSUMPTIONS — 14 steps, 2 checkpoints"]
+        direction LR
+        P3_A[/"Gather source docs"/]
+        P3_B["Enter historicals, calc ratios,<br/>build assumption block,<br/>scenarios Low/Base/High"]
+        P3_C{{"BS balances?<br/>Toggle works?"}}:::decision
+        P3_D["Legal/regulatory verification<br/>Macro framework: inflation, FX"]
+        P3_A --> P3_B --> P3_C -->|Yes| P3_D
+        P3_C -->|No| P3_B
+    end
+
+    P3 --> P4
+
+    subgraph P4["PHASE 4: BUILD — 19 steps, 4 checkpoints"]
+        direction LR
+        P4_IS["Income Statement<br/>Rev→COGS→EBITDA→NI"]
+        P4_BS["Balance Sheet<br/>WC, PP&E, Debt, Equity"]
+        P4_CF["Cash Flow<br/>CFO + CFI + CFF"]
+        P4_DCF["DCF Valuation<br/>UFCF, WACC, TV, EV→Equity"]
+        P4_IS --> P4_BS --> P4_CF --> P4_DCF
+    end
+
+    P4 --> P5
+
+    subgraph P5["PHASE 5: OUTPUTS & CHECKS — 15 steps, 2 checkpoints"]
+        direction LR
+        P5_A["Output summary, valuation range,<br/>key ratios, error checks"]
+        P5_B{{"All checks PASS?<br/>Dashboard ok?"}}:::decision
+        P5_C[/"Executive Dashboard"/]
+        P5_A --> P5_B -->|Yes| P5_C
+    end
+
+    P5 --> P6
+
+    subgraph P6["PHASE 6: STRESS & COMMUNICATE — 13 steps, 2 checkpoints"]
+        direction LR
+        P6_A["Sensitivity tables,<br/>full scenarios,<br/>extreme value tests"]
+        P6_B{{"Model breaks?"}}:::decision
+        P6_C["Package: narrative,<br/>handoff checklist,<br/>reviewer simulation"]
+        P6_A --> P6_B -->|No| P6_C
+    end
+
+    P6 --> RECONCILE["1.10 Final scope reconciliation"]
+    RECONCILE --> CP_FINAL{{"Cover matches model?<br/>Exclusions absent?"}}:::decision
+    CP_FINAL -->|Yes| STOP(["END: Model Complete"]):::terminal
+    CP_FINAL -->|No| P1
+
+    %% Feedback loops
+    P6_B -->|"Yes: structural"| P2
+    P5_B -->|"No: build issue"| P4
+    P5_B -->|"No: assumption"| P3
+
+    STAKEHOLDER(["Stakeholder reframes<br/>the decision"]):::loop
+    STAKEHOLDER -.->|"Cascade changes"| P1
+
+    style P1 fill:#ebf8ff,stroke:#2b6cb0,stroke-width:2px,color:#1a365d
+    style P2 fill:#f0fff4,stroke:#38a169,stroke-width:2px,color:#1a365d
+    style P3 fill:#fffff0,stroke:#d69e2e,stroke-width:2px,color:#1a365d
+    style P4 fill:#fff5f5,stroke:#e53e3e,stroke-width:2px,color:#1a365d
+    style P5 fill:#faf5ff,stroke:#805ad5,stroke-width:2px,color:#1a365d
+    style P6 fill:#fff5eb,stroke:#dd6b20,stroke-width:2px,color:#1a365d</pre>
+                <div class="diagram-placeholder" id="placeholder-0">
+                    <p style="text-align:center;color:#999;padding:40px 0;">Loading diagram...</p>
+                </div>
+            </div>
+            <div class="diagram-actions">
+                <button class="btn" onclick="copyMermaid(0)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                    Copy Mermaid Source
+                </button>
+                <button class="btn btn-primary" onclick="openLightbox(0)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
+                    Fullscreen
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ TAB 1: SCOPING ═══ -->
+    <div class="tab-content" id="tab-1">
+        <div class="card reveal">
+            <div class="card-header">
+                <h2>Phase 1: Scoping</h2>
+                <span class="badge" style="background:#2b6cb0">9 Steps</span>
+                <span class="task-count">2 checkpoints</span>
+            </div>
+            <div class="diagram-wrapper" data-diagram-idx="1">
+                <pre class="mermaid" style="display:none" data-idx="1">%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#1a365d', 'primaryTextColor': '#fff', 'primaryBorderColor': '#2b6cb0', 'lineColor': '#4a5568', 'fontSize': '13px'}, 'flowchart': {'curve': 'basis', 'padding': 16}}}%%
+
+flowchart TD
+    classDef terminal fill:#2b6cb0,stroke:#2c5282,color:#fff
+    classDef process fill:#ebf8ff,stroke:#2b6cb0,color:#1a365d
+    classDef decision fill:#fefcbf,stroke:#d69e2e,color:#1a365d
+    classDef io fill:#fed7e2,stroke:#d53f8c,color:#1a365d
+
+    START(["Begin Phase 1: Scoping"]):::terminal
+
+    START --> S1_1["1.1 State the decision in one sentence"]:::process
+    S1_1 --> S1_2["1.2 Identify primary audience"]:::process
+    S1_2 --> S1_3["1.3 Define key output metrics (max 3)"]:::process
+    S1_3 --> S1_4["1.4 Set time horizon"]:::process
+    S1_4 --> S1_5["1.5 Define periodicity"]:::process
+    S1_5 --> S1_6["1.6 List known constraints"]:::process
+    S1_6 --> S1_7["1.7 Define exclusions + impact notes"]:::process
+
+    S1_7 --> CP1{{"Decision defined?<br/>Metrics ≤ 3?<br/>Constraints documented?"}}:::decision
+    CP1 -->|No| S1_1
+    CP1 -->|Yes| S1_8["1.8 Write scope summary"]:::process
+    S1_8 --> S1_9[/"1.9 Get scope sign-off"/]:::io
+
+    S1_9 --> CP1b{{"Sign-off obtained?"}}:::decision
+    CP1b -->|No| S1_8
+    CP1b -->|Yes| P1_END(["End Phase 1"]):::terminal</pre>
+                <div class="diagram-placeholder" id="placeholder-1">
+                    <p style="text-align:center;color:#999;padding:40px 0;">Loading diagram...</p>
+                </div>
+            </div>
+            <div class="diagram-actions">
+                <button class="btn" onclick="copyMermaid(1)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                    Copy Mermaid Source
+                </button>
+                <button class="btn btn-primary" onclick="openLightbox(1)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
+                    Fullscreen
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ TAB 2: ARCHITECTURE ═══ -->
+    <div class="tab-content" id="tab-2">
+        <div class="card reveal">
+            <div class="card-header">
+                <h2>Phase 2: Architecture</h2>
+                <span class="badge" style="background:#38a169">12 Steps</span>
+                <span class="task-count">1 checkpoint</span>
+            </div>
+            <div class="diagram-wrapper" data-diagram-idx="2">
+                <pre class="mermaid" style="display:none" data-idx="2">%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#1a365d', 'primaryTextColor': '#fff', 'primaryBorderColor': '#38a169', 'lineColor': '#4a5568', 'fontSize': '13px'}, 'flowchart': {'curve': 'basis', 'padding': 16}}}%%
+
+flowchart TD
+    classDef terminal fill:#2f855a,stroke:#276749,color:#fff
+    classDef process fill:#f0fff4,stroke:#38a169,color:#1a365d
+    classDef decision fill:#fefcbf,stroke:#d69e2e,color:#1a365d
+
+    START(["Begin Phase 2: Architecture"]):::terminal
+
+    START --> S2_1["2.1 Define tab map and order"]:::process
+    S2_1 --> S2_2["2.2 Name tabs descriptively"]:::process
+    S2_2 --> S2_3["2.3 Assign tab color categories"]:::process
+    S2_3 --> S2_4["2.4 Standardize column structure<br/>Same year = same column on every tab"]:::process
+    S2_4 --> S2_5["2.5 Set row structure with logical blocks"]:::process
+    S2_5 --> S2_6["2.6 Establish sign conventions"]:::process
+    S2_6 --> S2_7["2.7 Set formatting standards<br/>Blue = input · Black = formula · Green = cross-tab"]:::process
+    S2_7 --> S2_8["2.8 Map the calculation flow<br/>Assumptions → IS → BS → CF → DCF → Outputs"]:::process
+    S2_8 --> S2_9["2.9 Flag potential circular references"]:::process
+    S2_9 --> S2_10["2.10 Define version control + change log"]:::process
+    S2_10 --> S2_11["2.11 Design Timing & Flags tab"]:::process
+    S2_11 --> S2_12["2.12 Plan Table of Contents tab"]:::process
+
+    S2_12 --> CP2{{"Tab map ordered?<br/>Columns aligned?<br/>Sign convention set?<br/>Flow mapped?"}}:::decision
+    CP2 -->|No| S2_1
+    CP2 -->|Yes| P2_END(["End Phase 2"]):::terminal
+
+    S2_9 -.->|"Circularity flagged"| CIRC(["Go to Tab 7:<br/>Circular References"]):::terminal</pre>
+                <div class="diagram-placeholder" id="placeholder-2">
+                    <p style="text-align:center;color:#999;padding:40px 0;">Loading diagram...</p>
+                </div>
+            </div>
+            <div class="diagram-actions">
+                <button class="btn" onclick="copyMermaid(2)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                    Copy Mermaid Source
+                </button>
+                <button class="btn btn-primary" onclick="openLightbox(2)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
+                    Fullscreen
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ TAB 3: INPUTS ═══ -->
+    <div class="tab-content" id="tab-3">
+        <div class="card reveal">
+            <div class="card-header">
+                <h2>Phase 3: Inputs & Assumptions</h2>
+                <span class="badge" style="background:#d69e2e">14 Steps</span>
+                <span class="task-count">2 checkpoints</span>
+            </div>
+            <div class="diagram-wrapper" data-diagram-idx="3">
+                <pre class="mermaid" style="display:none" data-idx="3">%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#1a365d', 'primaryTextColor': '#fff', 'primaryBorderColor': '#d69e2e', 'lineColor': '#4a5568', 'fontSize': '13px'}, 'flowchart': {'curve': 'basis', 'padding': 16}}}%%
+
+flowchart TD
+    classDef terminal fill:#b7791f,stroke:#975a16,color:#fff
+    classDef process fill:#fffff0,stroke:#d69e2e,color:#1a365d
+    classDef decision fill:#fefcbf,stroke:#d69e2e,color:#1a365d
+    classDef io fill:#fed7e2,stroke:#d53f8c,color:#1a365d
+
+    START(["Begin Phase 3: Inputs"]):::terminal
+
+    START --> S3_1[/"3.1 Gather source documents"/]:::io
+    S3_1 --> S3_2["3.2 Enter historical financial statements"]:::process
+    S3_2 --> S3_3["3.3 Calculate historical ratios & growth"]:::process
+    S3_3 --> S3_4["3.4 Build centralized assumption block"]:::process
+    S3_4 --> S3_5["3.5 Source & justify each assumption"]:::process
+    S3_5 --> S3_6["3.6 Set boundaries: Low / Base / High"]:::process
+    S3_6 --> S3_7["3.7 Build scenario toggle<br/>CHOOSE: 1=Low, 2=Base, 3=High"]:::process
+    S3_7 --> S3_8["3.8 Cross-check historical data"]:::process
+    S3_8 --> S3_9["3.9 Document all data transformations"]:::process
+
+    S3_9 --> CP3{{"BS balances historically?<br/>All assumptions sourced?<br/>Scenario toggle works?<br/>No hardcoded numbers<br/>outside assumption block?"}}:::decision
+    CP3 -->|No| S3_4
+    CP3 -->|Yes| S3_10["3.10 Verify legal & regulatory basis<br/>Tax rates, NOLs, depreciation"]:::process
+    S3_10 --> S3_11["3.11 Document legal basis per assumption"]:::process
+    S3_11 --> S3_12["3.12 Separate macro from operating assumptions"]:::process
+    S3_12 --> S3_13["3.13 Build inflation index layer"]:::process
+    S3_13 --> S3_14["3.14 Handle multi-currency exposures"]:::process
+
+    S3_14 --> CP3b{{"Inflation centralized?<br/>FX projected?<br/>All currencies labeled?"}}:::decision
+    CP3b -->|No| S3_12
+    CP3b -->|Yes| P3_END(["End Phase 3"]):::terminal</pre>
+                <div class="diagram-placeholder" id="placeholder-3">
+                    <p style="text-align:center;color:#999;padding:40px 0;">Loading diagram...</p>
+                </div>
+            </div>
+            <div class="diagram-actions">
+                <button class="btn" onclick="copyMermaid(3)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                    Copy Mermaid Source
+                </button>
+                <button class="btn btn-primary" onclick="openLightbox(3)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
+                    Fullscreen
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ TAB 4: BUILD ═══ -->
+    <div class="tab-content" id="tab-4">
+        <div class="card reveal">
+            <div class="card-header">
+                <h2>Phase 4: Build</h2>
+                <span class="badge" style="background:#e53e3e">19 Steps</span>
+                <span class="task-count">4 checkpoints · 4 sub-sections</span>
+            </div>
+            <div class="diagram-wrapper" data-diagram-idx="4">
+                <pre class="mermaid" style="display:none" data-idx="4">%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#1a365d', 'primaryTextColor': '#fff', 'primaryBorderColor': '#e53e3e', 'lineColor': '#4a5568', 'fontSize': '13px'}, 'flowchart': {'curve': 'basis', 'padding': 16}}}%%
+
+flowchart TD
+    classDef terminal fill:#c53030,stroke:#9b2c2c,color:#fff
+    classDef process fill:#fff5f5,stroke:#e53e3e,color:#1a365d
+    classDef decision fill:#fefcbf,stroke:#d69e2e,color:#1a365d
+    classDef io fill:#fed7e2,stroke:#d53f8c,color:#1a365d
+    classDef sub fill:#feb2b2,stroke:#c53030,color:#1a365d
+
+    START(["Begin Phase 4: Build"]):::terminal
+
+    START --> S4_IS(["Income Statement"]):::sub
+    S4_IS --> S4_1["4.1 Build revenue line<br/>Prior year × (1 + growth rate)"]:::process
+    S4_1 --> S4_2["4.2 COGS & gross profit"]:::process
+    S4_2 --> S4_3["4.3 Operating expenses by driver"]:::process
+    S4_3 --> S4_4["4.4 Calculate EBITDA & EBIT"]:::process
+    S4_4 --> S4_5["4.5 Interest, tax & net income"]:::process
+
+    S4_5 --> CP4a{{"Margins reasonable?<br/>No formula errors?"}}:::decision
+    CP4a -->|"No: missing assumption"| BACK_P3(["Return to Phase 3<br/>Step 3.4"]):::terminal
+    CP4a -->|Yes| S4_BS
+
+    S4_BS(["Balance Sheet"]):::sub
+    S4_BS --> S4_6["4.6 Working capital: AR, Inv, AP"]:::process
+    S4_6 --> S4_7["4.7 PP&E roll-forward schedule"]:::process
+    S4_7 --> S4_8["4.8 Debt schedule"]:::process
+    S4_8 --> S4_9["4.9 Retained earnings & equity"]:::process
+    S4_9 --> S4_10["4.10 Assemble projected BS"]:::process
+
+    S4_10 --> CP4b{{"Assets = L + E<br/>for every period?"}}:::decision
+    CP4b -->|No| S4_6
+    CP4b -->|Yes| S4_CF
+
+    S4_CF(["Cash Flow Statement"]):::sub
+    S4_CF --> S4_11["4.11 CFO: NI + D&A ± ΔWC"]:::process
+    S4_11 --> S4_12["4.12 CFI: CapEx, asset sales"]:::process
+    S4_12 --> S4_13["4.13 CFF: debt, dividends, equity"]:::process
+    S4_13 --> S4_14["4.14 Ending cash = Beg + CFO + CFI + CFF"]:::process
+
+    S4_14 --> CP4c{{"CF ending cash<br/>= BS cash?"}}:::decision
+    CP4c -->|No| S4_11
+    CP4c -->|Yes| S4_DCF
+
+    S4_DCF(["DCF Valuation"]):::sub
+    S4_DCF --> S4_15["4.15 Calculate UFCF<br/>EBIT × (1-t) + D&A - CapEx - ΔNWC"]:::process
+    S4_15 --> S4_16["4.16 Build WACC"]:::process
+    S4_16 --> S4_17["4.17 Discount UFCF to present value"]:::process
+    S4_17 --> S4_18["4.18 Terminal value<br/>Gordon Growth + Exit Multiple"]:::process
+
+    S4_18 --> CP4d{{"TV methods within<br/>20% of each other?"}}:::decision
+    CP4d -->|"No: investigate"| S4_16
+    CP4d -->|Yes| S4_19[/"4.19 EV → Equity Value bridge<br/>EV - Net Debt = Equity Value"/]:::io
+
+    S4_19 --> P4_END(["End Phase 4"]):::terminal</pre>
+                <div class="diagram-placeholder" id="placeholder-4">
+                    <p style="text-align:center;color:#999;padding:40px 0;">Loading diagram...</p>
+                </div>
+            </div>
+            <div class="diagram-actions">
+                <button class="btn" onclick="copyMermaid(4)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                    Copy Mermaid Source
+                </button>
+                <button class="btn btn-primary" onclick="openLightbox(4)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
+                    Fullscreen
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ TAB 5: OUTPUTS ═══ -->
+    <div class="tab-content" id="tab-5">
+        <div class="card reveal">
+            <div class="card-header">
+                <h2>Phase 5: Outputs & Checks</h2>
+                <span class="badge" style="background:#805ad5">15 Steps</span>
+                <span class="task-count">2 checkpoints</span>
+            </div>
+            <div class="diagram-wrapper" data-diagram-idx="5">
+                <pre class="mermaid" style="display:none" data-idx="5">%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#1a365d', 'primaryTextColor': '#fff', 'primaryBorderColor': '#805ad5', 'lineColor': '#4a5568', 'fontSize': '13px'}, 'flowchart': {'curve': 'basis', 'padding': 16}}}%%
+
+flowchart TD
+    classDef terminal fill:#6b46c1,stroke:#553c9a,color:#fff
+    classDef process fill:#faf5ff,stroke:#805ad5,color:#1a365d
+    classDef decision fill:#fefcbf,stroke:#d69e2e,color:#1a365d
+    classDef io fill:#fed7e2,stroke:#d53f8c,color:#1a365d
+
+    START(["Begin Phase 5: Outputs & Checks"]):::terminal
+
+    START --> S5_1[/"5.1 Create Output Summary tab"/]:::io
+    S5_1 --> S5_2["5.2 Build valuation range / football field"]:::process
+    S5_2 --> S5_3["5.3 Compile key ratios dashboard"]:::process
+    S5_3 --> S5_4["5.4 Build dedicated checks block"]:::process
+    S5_4 --> S5_5["5.5 Balance sheet check<br/>ABS(A - L - E) &lt; 0.01"]:::process
+    S5_5 --> S5_6["5.6 Cash flow tie check"]:::process
+    S5_6 --> S5_7["5.7 Net income tie: IS ↔ CF"]:::process
+    S5_7 --> S5_8["5.8 Reasonableness checks<br/>Rev &gt; 0 · margins in range · g &lt; WACC"]:::process
+    S5_8 --> S5_9["5.9 Master check cell + break test"]:::process
+
+    S5_9 --> CP5a{{"All structural checks PASS?<br/>Break test confirms<br/>master check works?"}}:::decision
+    CP5a -->|"No: build issue"| BACK_P4(["Return to Phase 4"]):::terminal
+    CP5a -->|"No: assumption issue"| BACK_P3(["Return to Phase 3"]):::terminal
+    CP5a -->|Yes| S5_10["5.10 Scope-vs-model alignment"]:::process
+    S5_10 --> S5_11["5.11 Distributable CF flags"]:::process
+    S5_11 --> S5_12["5.12 Regulatory assumption checks"]:::process
+    S5_12 --> S5_13["5.13 Coverage & metric cliff detection"]:::process
+    S5_13 --> S5_14[/"5.14 Build Executive Dashboard"/]:::io
+    S5_14 --> S5_15["5.15 Embed checks in Dashboard"]:::process
+
+    S5_15 --> CP5b{{"Dashboard self-contained?<br/>Enhanced checks PASS?"}}:::decision
+    CP5b -->|No| S5_10
+    CP5b -->|Yes| P5_END(["End Phase 5"]):::terminal</pre>
+                <div class="diagram-placeholder" id="placeholder-5">
+                    <p style="text-align:center;color:#999;padding:40px 0;">Loading diagram...</p>
+                </div>
+            </div>
+            <div class="diagram-actions">
+                <button class="btn" onclick="copyMermaid(5)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                    Copy Mermaid Source
+                </button>
+                <button class="btn btn-primary" onclick="openLightbox(5)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
+                    Fullscreen
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ TAB 6: STRESS ═══ -->
+    <div class="tab-content" id="tab-6">
+        <div class="card reveal">
+            <div class="card-header">
+                <h2>Phase 6: Stress & Communicate</h2>
+                <span class="badge" style="background:#dd6b20">13 Steps</span>
+                <span class="task-count">2 checkpoints · 3 sub-sections</span>
+            </div>
+            <div class="diagram-wrapper" data-diagram-idx="6">
+                <pre class="mermaid" style="display:none" data-idx="6">%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#1a365d', 'primaryTextColor': '#fff', 'primaryBorderColor': '#dd6b20', 'lineColor': '#4a5568', 'fontSize': '13px'}, 'flowchart': {'curve': 'basis', 'padding': 16}}}%%
+
+flowchart TD
+    classDef terminal fill:#c05621,stroke:#9c4221,color:#fff
+    classDef process fill:#fff5eb,stroke:#dd6b20,color:#1a365d
+    classDef decision fill:#fefcbf,stroke:#d69e2e,color:#1a365d
+    classDef sub fill:#fbd38d,stroke:#c05621,color:#1a365d
+
+    START(["Begin Phase 6: Stress & Communicate"]):::terminal
+
+    START --> S6_SENS(["Sensitivity Analysis"]):::sub
+    S6_SENS --> S6_1["6.1 Build 2-way sensitivity table"]:::process
+    S6_1 --> S6_2["6.2 Build 1-way sensitivities / tornado"]:::process
+    S6_2 --> S6_3["6.3 Run full scenarios: Low / Base / High"]:::process
+
+    S6_3 --> S6_STRESS(["Stress Testing"]):::sub
+    S6_STRESS --> S6_4["6.4 Extreme value tests<br/>0% growth, 0% margin, max leverage"]:::process
+    S6_4 --> S6_5{{"Model breaks under<br/>extreme values?"}}:::decision
+    S6_5 -->|"Yes: structural"| BACK_P2(["Return to Phase 2:<br/>Restructure"]):::terminal
+    S6_5 -->|No| S6_6["6.6 Circular reference stability test"]:::process
+    S6_6 --> S6_10["6.10 Verify sensitivity labels & directions"]:::process
+    S6_10 --> S6_11["6.11 Multi-factor stress test<br/>3-4 adverse assumptions at once"]:::process
+
+    S6_11 --> S6_PKG(["Packaging"]):::sub
+    S6_PKG --> S6_7["6.7 Write model narrative on Cover"]:::process
+    S6_7 --> S6_9["6.9 Prepare handoff checklist"]:::process
+    S6_9 --> S6_12["6.12 Cold read: Cover + Summary only"]:::process
+    S6_12 --> S6_13["6.13 Reviewer simulation protocol<br/>Trace every claim to its source cell"]:::process
+
+    S6_13 --> CP6{{"Sensitivities complete?<br/>Scenarios documented?<br/>Narrative written?<br/>ALL CHECKS STILL PASS?"}}:::decision
+    CP6 -->|"No: assumption issue"| BACK_P3(["Return to Phase 3"]):::terminal
+    CP6 -->|"No: check fails"| BACK_P4(["Return to Phase 4"]):::terminal
+    CP6 -->|Yes| P6_END(["End Phase 6"]):::terminal</pre>
+                <div class="diagram-placeholder" id="placeholder-6">
+                    <p style="text-align:center;color:#999;padding:40px 0;">Loading diagram...</p>
+                </div>
+            </div>
+            <div class="diagram-actions">
+                <button class="btn" onclick="copyMermaid(6)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                    Copy Mermaid Source
+                </button>
+                <button class="btn btn-primary" onclick="openLightbox(6)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
+                    Fullscreen
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ TAB 7: CIRCULAR REFS ═══ -->
+    <div class="tab-content" id="tab-7">
+        <div class="card reveal">
+            <div class="card-header">
+                <h2>Circular References</h2>
+                <span class="badge" style="background:#718096">8 Steps</span>
+                <span class="task-count">2 decisions · Method A vs B</span>
+            </div>
+            <div class="diagram-wrapper" data-diagram-idx="7">
+                <pre class="mermaid" style="display:none" data-idx="7">%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#1a365d', 'primaryTextColor': '#fff', 'primaryBorderColor': '#718096', 'lineColor': '#4a5568', 'fontSize': '13px'}, 'flowchart': {'curve': 'basis', 'padding': 16}}}%%
+
+flowchart TD
+    classDef terminal fill:#718096,stroke:#4a5568,color:#fff
+    classDef process fill:#f7fafc,stroke:#718096,color:#1a365d
+    classDef decision fill:#fefcbf,stroke:#d69e2e,color:#1a365d
+    classDef methodA fill:#c6f6d5,stroke:#38a169,color:#1a365d
+    classDef methodB fill:#fed7d7,stroke:#e53e3e,color:#1a365d
+
+    C_START(["Circularity flagged in Step 2.9"]):::terminal
+
+    C_START --> C_ID["7.1 Identify the circular loop<br/>Interest → Debt → CF → NI → Interest"]:::process
+
+    C_ID --> C_DEC{{"Avoid or solve?"}}:::decision
+
+    C_DEC -->|"Simple model<br/>(DCF, M&A)"| C_AVOID["7.3 Method A: AVOID<br/>Use beginning-of-period balance<br/>for interest calculation"]:::methodA
+    C_DEC -->|"Advanced model<br/>(LBO, PF)"| C_SOLVE_1["7.4 Enable iterative calculation<br/>File → Options → Formulas<br/>Iterations: 100 · Change: 0.001"]:::methodB
+    C_SOLVE_1 --> C_SOLVE_2["7.5 Build formula with average debt<br/>Interest = ((Beg+End)/2) × Rate"]:::methodB
+    C_SOLVE_2 --> C_SOLVE_3["7.6 Build toggle switch<br/>1 = ON (iterative), 0 = OFF (break)"]:::methodB
+    C_SOLVE_3 --> C_SOLVE_4["7.7 Test convergence<br/>Change input → press F9 repeatedly<br/>Verify stable answer"]:::methodB
+
+    C_SOLVE_4 --> C_CONV{{"Converges to<br/>same answer?"}}:::decision
+    C_CONV -->|"No: unstable"| C_SOLVE_1
+    C_CONV -->|Yes| C_DOC["7.8 Document on Cover tab"]:::process
+    C_AVOID --> C_DOC
+
+    C_DOC --> C_END(["Resume Build phase"]):::terminal</pre>
+                <div class="diagram-placeholder" id="placeholder-7">
+                    <p style="text-align:center;color:#999;padding:40px 0;">Loading diagram...</p>
+                </div>
+            </div>
+            <div class="diagram-actions">
+                <button class="btn" onclick="copyMermaid(7)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                    Copy Mermaid Source
+                </button>
+                <button class="btn btn-primary" onclick="openLightbox(7)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
+                    Fullscreen
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ TAB 8: ADAPTATION ═══ -->
+    <div class="tab-content" id="tab-8">
+        <div class="card reveal">
+            <div class="card-header">
+                <h2>Adaptation Guide: 12+ Model Types</h2>
+                <span class="badge" style="background:#4a5568">Same 6 phases</span>
+                <span class="task-count">Different engines & metrics per type</span>
+            </div>
+            <div class="diagram-wrapper" data-diagram-idx="8">
+                <pre class="mermaid" style="display:none" data-idx="8">%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#1a365d', 'primaryTextColor': '#fff', 'primaryBorderColor': '#4a5568', 'lineColor': '#4a5568', 'fontSize': '13px'}, 'flowchart': {'curve': 'basis', 'padding': 16}}}%%
+
+flowchart TD
+    classDef card fill:#e2e8f0,stroke:#4a5568,color:#1a365d
+    classDef header fill:#1a365d,stroke:#2d3748,color:#fff
+
+    TITLE["ADAPTATION GUIDE<br/>Same 6 phases, different engines and metrics"]:::header
+
+    TITLE --> ROW1 & ROW2 & ROW3
+
+    subgraph ROW1[" "]
+        direction LR
+        A1["<b>LBO</b><br/>Engine: Debt Schedule<br/>Output: IRR, MOIC<br/>Circularity: High"]:::card
+        A2["<b>Project Finance</b><br/>Engine: Cash Waterfall<br/>Output: Equity IRR, DSCR<br/>Circularity: Moderate"]:::card
+        A3["<b>M&A</b><br/>Engine: Pro Forma IS<br/>Output: Accretion/Dilution<br/>Circularity: Low-Moderate"]:::card
+        A4["<b>REIT</b><br/>Engine: Property NOI<br/>Output: NAV, FFO/AFFO<br/>Circularity: Low"]:::card
+    end
+
+    subgraph ROW2[" "]
+        direction LR
+        A5["<b>CRE Acquisition</b><br/>Engine: NOI Waterfall<br/>Output: Levered IRR, CoC<br/>Circularity: Low"]:::card
+        A6["<b>Banks</b><br/>Engine: Balance Sheet<br/>Output: EPS, ROTCE, CET1<br/>Circularity: Moderate"]:::card
+        A7["<b>Startup / VC</b><br/>Engine: Burn + Cap Table<br/>Output: IRR, Runway<br/>Circularity: Low"]:::card
+        A8["<b>Mining</b><br/>Engine: Mine Plan<br/>Output: NAV, AISC<br/>Circularity: Low-Moderate"]:::card
+    end
+
+    subgraph ROW3[" "]
+        direction LR
+        A9["<b>Distressed</b><br/>Engine: Claims Waterfall<br/>Output: Recovery %<br/>Circularity: Low"]:::card
+        A10["<b>Pharma</b><br/>Engine: Pipeline rNPV<br/>Output: Risk-adj NPV<br/>Circularity: Low"]:::card
+        A11["<b>Insurance</b><br/>Engine: Combined Ratio<br/>Output: ROE, BV/Share<br/>Circularity: Moderate"]:::card
+        A12["<b>SaaS · Shipping<br/>Renewables · PPP<br/>Utilities</b><br/>See full guide"]:::card
+    end
+
+    style ROW1 fill:none,stroke:none
+    style ROW2 fill:none,stroke:none
+    style ROW3 fill:none,stroke:none</pre>
+                <div class="diagram-placeholder" id="placeholder-8">
+                    <p style="text-align:center;color:#999;padding:40px 0;">Loading diagram...</p>
+                </div>
+            </div>
+            <div class="diagram-actions">
+                <button class="btn" onclick="copyMermaid(8)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                    Copy Mermaid Source
+                </button>
+                <button class="btn btn-primary" onclick="openLightbox(8)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
+                    Fullscreen
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ TAB 9: SUMMARY ═══ -->
+    <div class="tab-content" id="tab-9">
+        <div class="summary-grid reveal">
+            <div class="summary-card">
+                <h3>Steps per Phase</h3>
+                <div class="bar-chart">
+                    <div class="bar-row">
+                        <span class="bar-label">1. Scoping</span>
+                        <div class="bar-track"><div class="bar-fill" style="width:47%;background:#bee3f8">9</div></div>
+                        <span class="bar-value">9</span>
+                    </div>
+                    <div class="bar-row">
+                        <span class="bar-label">2. Architecture</span>
+                        <div class="bar-track"><div class="bar-fill" style="width:63%;background:#c6f6d5">12</div></div>
+                        <span class="bar-value">12</span>
+                    </div>
+                    <div class="bar-row">
+                        <span class="bar-label">3. Inputs</span>
+                        <div class="bar-track"><div class="bar-fill" style="width:74%;background:#fefcbf">14</div></div>
+                        <span class="bar-value">14</span>
+                    </div>
+                    <div class="bar-row">
+                        <span class="bar-label">4. Build</span>
+                        <div class="bar-track"><div class="bar-fill" style="width:100%;background:#fed7d7">19</div></div>
+                        <span class="bar-value">19</span>
+                    </div>
+                    <div class="bar-row">
+                        <span class="bar-label">5. Outputs</span>
+                        <div class="bar-track"><div class="bar-fill" style="width:79%;background:#e9d8fd">15</div></div>
+                        <span class="bar-value">15</span>
+                    </div>
+                    <div class="bar-row">
+                        <span class="bar-label">6. Stress</span>
+                        <div class="bar-track"><div class="bar-fill" style="width:68%;background:#feebc8">13</div></div>
+                        <span class="bar-value">13</span>
+                    </div>
+                    <div class="bar-row">
+                        <span class="bar-label">Circular Refs</span>
+                        <div class="bar-track"><div class="bar-fill" style="width:42%;background:#e2e8f0">8</div></div>
+                        <span class="bar-value">8</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="summary-card">
+                <h3>Checkpoints per Phase</h3>
+                <div class="bar-chart">
+                    <div class="bar-row">
+                        <span class="bar-label">1. Scoping</span>
+                        <div class="bar-track"><div class="bar-fill" style="width:50%;background:#bee3f8">2</div></div>
+                        <span class="bar-value">2</span>
+                    </div>
+                    <div class="bar-row">
+                        <span class="bar-label">2. Architecture</span>
+                        <div class="bar-track"><div class="bar-fill" style="width:25%;background:#c6f6d5">1</div></div>
+                        <span class="bar-value">1</span>
+                    </div>
+                    <div class="bar-row">
+                        <span class="bar-label">3. Inputs</span>
+                        <div class="bar-track"><div class="bar-fill" style="width:50%;background:#fefcbf">2</div></div>
+                        <span class="bar-value">2</span>
+                    </div>
+                    <div class="bar-row">
+                        <span class="bar-label">4. Build</span>
+                        <div class="bar-track"><div class="bar-fill" style="width:100%;background:#fed7d7">4</div></div>
+                        <span class="bar-value">4</span>
+                    </div>
+                    <div class="bar-row">
+                        <span class="bar-label">5. Outputs</span>
+                        <div class="bar-track"><div class="bar-fill" style="width:50%;background:#e9d8fd">2</div></div>
+                        <span class="bar-value">2</span>
+                    </div>
+                    <div class="bar-row">
+                        <span class="bar-label">6. Stress</span>
+                        <div class="bar-track"><div class="bar-fill" style="width:50%;background:#feebc8">2</div></div>
+                        <span class="bar-value">2</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="summary-card">
+                <h3>Feedback Loops</h3>
+                <div class="bar-chart">
+                    <div class="bar-row">
+                        <span class="bar-label">Build → Inputs</span>
+                        <div class="bar-track"><div class="bar-fill" style="width:100%;background:#fed7d7">Missing driver</div></div>
+                    </div>
+                    <div class="bar-row">
+                        <span class="bar-label">Outputs → Build</span>
+                        <div class="bar-track"><div class="bar-fill" style="width:100%;background:#e9d8fd">Check fails</div></div>
+                    </div>
+                    <div class="bar-row">
+                        <span class="bar-label">Stress → Arch.</span>
+                        <div class="bar-track"><div class="bar-fill" style="width:100%;background:#feebc8">Model breaks</div></div>
+                    </div>
+                    <div class="bar-row">
+                        <span class="bar-label">Stakeholder → P1</span>
+                        <div class="bar-track"><div class="bar-fill" style="width:100%;background:#fc8181">Reframes question</div></div>
+                    </div>
+                    <div class="bar-row">
+                        <span class="bar-label">Final → Scope</span>
+                        <div class="bar-track"><div class="bar-fill" style="width:100%;background:#bee3f8">Reconcile mismatch</div></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="summary-card">
+                <h3>Adaptation Guide: Model Types</h3>
+                <div class="bar-chart">
+                    <div class="bar-row">
+                        <span class="bar-label">LBO</span>
+                        <div class="bar-track"><div class="bar-fill" style="width:100%;background:#fc8181">High circularity</div></div>
+                    </div>
+                    <div class="bar-row">
+                        <span class="bar-label">Project Finance</span>
+                        <div class="bar-track"><div class="bar-fill" style="width:65%;background:#fbd38d">Moderate</div></div>
+                    </div>
+                    <div class="bar-row">
+                        <span class="bar-label">Banks</span>
+                        <div class="bar-track"><div class="bar-fill" style="width:65%;background:#fbd38d">Moderate</div></div>
+                    </div>
+                    <div class="bar-row">
+                        <span class="bar-label">Insurance</span>
+                        <div class="bar-track"><div class="bar-fill" style="width:65%;background:#fbd38d">Moderate</div></div>
+                    </div>
+                    <div class="bar-row">
+                        <span class="bar-label">M&A / Mining</span>
+                        <div class="bar-track"><div class="bar-fill" style="width:40%;background:#c6f6d5">Low-Mod</div></div>
+                    </div>
+                    <div class="bar-row">
+                        <span class="bar-label">REIT / VC / CRE</span>
+                        <div class="bar-track"><div class="bar-fill" style="width:25%;background:#c6f6d5">Low</div></div>
+                    </div>
+                    <div class="bar-row">
+                        <span class="bar-label">Pharma / Distressed</span>
+                        <div class="bar-track"><div class="bar-fill" style="width:25%;background:#c6f6d5">Low</div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ LEGEND SECTION ═══ -->
+    <section class="legend-section" style="max-width:1200px;margin:0 auto;padding:24px;">
+        <div class="legend-grid">
+            <div class="card legend-card reveal">
+                <h4>Flowchart Symbols</h4>
+                <div class="legend-item"><div class="legend-swatch" style="background:#276749;border-radius:10px;"></div> Rounded rectangle = Start / End terminal</div>
+                <div class="legend-item"><div class="legend-swatch" style="background:#ebf8ff;"></div> Rectangle = Process step</div>
+                <div class="legend-item"><div class="legend-swatch" style="background:#fefcbf;border-radius:0;transform:rotate(45deg);width:16px;height:16px;"></div> Diamond = Decision / Checkpoint</div>
+                <div class="legend-item"><div class="legend-swatch" style="background:#fed7e2;transform:skewX(-10deg);"></div> Parallelogram = Input / Output</div>
+                <div class="legend-item"><div style="width:28px;border-top:2px dashed #4a5568;margin:8px 0;flex-shrink:0;"></div> Dashed arrow = Feedback loop</div>
+                <div class="legend-item"><div style="width:28px;border-top:2px solid #4a5568;margin:8px 0;flex-shrink:0;"></div> Solid arrow = Sequential flow</div>
+            </div>
+            <div class="card legend-card reveal">
+                <h4>Phase Colors</h4>
+                <div class="legend-item"><div class="legend-swatch" style="background:#ebf8ff;border-color:#2b6cb0;"></div> Phase 1: Scoping</div>
+                <div class="legend-item"><div class="legend-swatch" style="background:#f0fff4;border-color:#38a169;"></div> Phase 2: Architecture</div>
+                <div class="legend-item"><div class="legend-swatch" style="background:#fffff0;border-color:#d69e2e;"></div> Phase 3: Inputs & Assumptions</div>
+                <div class="legend-item"><div class="legend-swatch" style="background:#fff5f5;border-color:#e53e3e;"></div> Phase 4: Build</div>
+                <div class="legend-item"><div class="legend-swatch" style="background:#faf5ff;border-color:#805ad5;"></div> Phase 5: Outputs & Checks</div>
+                <div class="legend-item"><div class="legend-swatch" style="background:#fff5eb;border-color:#dd6b20;"></div> Phase 6: Stress & Communicate</div>
+                <div class="legend-item"><div class="legend-swatch" style="background:#f7fafc;border-color:#718096;"></div> Circular References</div>
+            </div>
+            <div class="card legend-card reveal">
+                <h4>Key Checkpoints</h4>
+                <div class="legend-item"><strong style="color:#2b6cb0;min-width:36px;">CP1</strong> Scope defined, metrics ≤ 3, sign-off</div>
+                <div class="legend-item"><strong style="color:#38a169;min-width:36px;">CP2</strong> Structure standardized, flow mapped</div>
+                <div class="legend-item"><strong style="color:#d69e2e;min-width:36px;">CP3</strong> BS balances, toggle works, macro set</div>
+                <div class="legend-item"><strong style="color:#e53e3e;min-width:36px;">CP4</strong> Margins ok, A=L+E, cash ties, TV ±20%</div>
+                <div class="legend-item"><strong style="color:#805ad5;min-width:36px;">CP5</strong> All checks PASS, dashboard self-contained</div>
+                <div class="legend-item"><strong style="color:#dd6b20;min-width:36px;">CP6</strong> Stress complete, narrative written, checks pass</div>
+                <div class="legend-item"><strong style="color:#1a365d;min-width:36px;">FINAL</strong> Cover matches model, exclusions absent</div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        Financial Modeling Playbook v8 &middot; 6 Phases &middot; 91 Steps &middot; 13 Checkpoints &middot; 12+ Model Types &middot; Standards-Compliant Flowchart
+    </footer>
+
+    <!-- ═══ LIGHTBOX ═══ -->
+    <div class="lightbox" id="lightbox">
+        <div class="lightbox-controls">
+            <button onclick="zoomLightbox(0.2)" title="Zoom in">+</button>
+            <button onclick="zoomLightbox(-0.2)" title="Zoom out">&minus;</button>
+            <button onclick="resetZoom()" title="Reset zoom">&#8634;</button>
+            <button onclick="closeLightbox()" title="Close">&times;</button>
+        </div>
+        <div class="lightbox-canvas" id="lightbox-canvas"></div>
+        <div class="lightbox-zoom-info" id="zoom-info">100%</div>
+    </div>
+
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({
+            startOnLoad: false,
+            securityLevel: 'loose',
+            theme: 'base',
+            flowchart: { curve: 'basis', padding: 16, nodeSpacing: 25, rankSpacing: 40 },
+            themeVariables: { primaryColor: '#1a365d', primaryTextColor: '#fff', lineColor: '#4a5568' }
+        });
+
+        // Collect mermaid sources for copy
+        const mmdSources = {};
+        document.querySelectorAll('pre.mermaid[data-idx]').forEach(pre => {
+            mmdSources[pre.dataset.idx] = pre.textContent;
+        });
+
+        // Tab switching with lazy render
+        const rendered = new Set();
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        function fitDiagram(idx) {
+            const wrapper = document.querySelector(`[data-diagram-idx="${idx}"]`);
+            if (!wrapper) return;
+            const svg = wrapper.querySelector('svg');
+            if (!svg) return;
+            svg.style.transform = '';
+            wrapper.style.height = '';
+            wrapper.classList.remove('fitted');
+            const svgW = svg.getBoundingClientRect().width;
+            const containerW = wrapper.clientWidth - 32;
+            if (svgW > 0 && containerW > 0 && svgW > containerW) {
+                const ratio = Math.max(0.3, containerW / svgW);
+                svg.style.transform = `scale(${ratio})`;
+                const svgH = svg.getBoundingClientRect().height / ratio;
+                wrapper.style.height = (svgH * ratio + 32) + 'px';
+                wrapper.classList.add('fitted');
+            }
+        }
+
+        async function renderDiagram(idx) {
+            if (rendered.has(idx)) return;
+            rendered.add(idx);
+            const pre = document.querySelector(`pre.mermaid[data-idx="${idx}"]`);
+            const placeholder = document.getElementById(`placeholder-${idx}`);
+            if (!pre) return;
+            try {
+                const { svg } = await mermaid.render(`mermaid-${idx}`, pre.textContent);
+                if (placeholder) placeholder.innerHTML = svg;
+                requestAnimationFrame(() => fitDiagram(idx));
+            } catch (e) {
+                if (placeholder) placeholder.innerHTML = '<p style="color:#c00;padding:20px;">Diagram rendering failed. Try refreshing.</p>';
+                console.error('Mermaid render error for tab', idx, e);
+            }
+        }
+
+        window.addEventListener('resize', () => {
+            rendered.forEach(idx => fitDiagram(idx));
+        });
+
+        function switchTab(tabId) {
+            tabBtns.forEach(b => b.classList.remove('active'));
+            tabContents.forEach(c => c.classList.remove('active'));
+            document.querySelector(`[data-tab="${tabId}"]`)?.classList.add('active');
+            const content = document.getElementById(tabId);
+            if (content) {
+                content.classList.add('active');
+                const idx = parseInt(tabId.split('-')[1]);
+                if (!isNaN(idx) && idx < 9) renderDiagram(idx);
+                content.querySelectorAll('.reveal').forEach(el => el.classList.add('visible'));
+            }
+        }
+
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+        });
+
+        // Render first tab on load
+        renderDiagram(0);
+        document.querySelectorAll('#tab-0 .reveal').forEach(el => el.classList.add('visible'));
+
+        // Copy mermaid source
+        window.copyMermaid = function(idx) {
+            const source = mmdSources[idx];
+            if (!source) return;
+            navigator.clipboard.writeText(source).then(() => {
+                const btn = event.currentTarget;
+                const orig = btn.innerHTML;
+                btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Copied!';
+                setTimeout(() => btn.innerHTML = orig, 2000);
+            });
+        };
+
+        // Lightbox
+        let currentZoom = 1;
+        const lightbox = document.getElementById('lightbox');
+        const canvas = document.getElementById('lightbox-canvas');
+        const zoomInfo = document.getElementById('zoom-info');
+
+        window.openLightbox = function(idx) {
+            const wrapper = document.querySelector(`[data-diagram-idx="${idx}"]`);
+            const svg = wrapper?.querySelector('svg');
+            if (!svg) return;
+            const clone = svg.cloneNode(true);
+            clone.style.transform = '';
+            clone.style.background = '#fff';
+            clone.style.borderRadius = '8px';
+            clone.style.padding = '16px';
+            canvas.innerHTML = '';
+            canvas.appendChild(clone);
+            currentZoom = 1;
+            updateZoom();
+            lightbox.classList.add('open');
+            document.body.style.overflow = 'hidden';
+        };
+
+        window.closeLightbox = function() {
+            lightbox.classList.remove('open');
+            document.body.style.overflow = '';
+            canvas.innerHTML = '';
+        };
+
+        window.zoomLightbox = function(delta) {
+            currentZoom = Math.max(0.5, Math.min(3, currentZoom + delta));
+            updateZoom();
+        };
+
+        window.resetZoom = function() {
+            currentZoom = 1;
+            updateZoom();
+        };
+
+        function updateZoom() {
+            const svg = canvas.querySelector('svg');
+            if (svg) {
+                svg.style.transform = `scale(${currentZoom})`;
+                svg.style.transformOrigin = 'top left';
+            }
+            zoomInfo.textContent = Math.round(currentZoom * 100) + '%';
+        }
+
+        canvas.addEventListener('wheel', (e) => {
+            if (!lightbox.classList.contains('open')) return;
+            e.preventDefault();
+            const delta = e.deltaY > 0 ? -0.1 : 0.1;
+            currentZoom = Math.max(0.5, Math.min(3, currentZoom + delta));
+            updateZoom();
+        }, { passive: false });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeLightbox();
+        });
+
+        lightbox.addEventListener('click', (e) => {
+            if (e.target === lightbox) closeLightbox();
+        });
+
+        // Scroll reveal
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) entry.target.classList.add('visible');
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.legend-section .reveal').forEach(el => observer.observe(el));
+    </script>
+</body>
+</html>
