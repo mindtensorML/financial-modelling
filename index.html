@@ -78,8 +78,6 @@ section.phase { margin-top:84px; }
 figure.diagram { margin:0; background:#FFFFFF; border:1px solid var(--rule); border-radius:14px; padding:18px 10px; position:sticky; top:16px; max-height:calc(100vh - 32px); overflow:auto; }
 figure.diagram .mermaid { display:flex; justify-content:center; }
 figure.diagram svg { max-width:100%; height:auto; }
-figure.diagram.wide .mermaid { justify-content:flex-start; }
-figure.diagram.wide svg { flex-shrink:0; }
 ol.tasks { list-style:none; margin:0; padding:0; display:grid; gap:10px; }
 ol.tasks li { background:var(--paper); border:1px solid var(--rule); border-radius:12px; padding:14px 16px; }
 ol.tasks .row { display:flex; flex-wrap:wrap; align-items:center; gap:8px 10px; margin-bottom:6px; }
@@ -95,6 +93,17 @@ footer { margin-top:96px; padding-top:20px; border-top:1px solid var(--rule); co
 @media (max-width:1100px) { .ph-body { grid-template-columns:1fr; } figure.diagram { position:static; max-height:none; } }
 @media (max-width:900px) { .shell { grid-template-columns:1fr; gap:0; } aside.toc { display:none; } .panel { grid-template-columns:1fr; } .cycle { grid-template-columns:repeat(2,minmax(0,1fr)); row-gap:18px; } .grp { grid-template-columns:1fr; gap:8px; } }
 @media print { aside.toc, .top { display:none; } .shell { display:block; } figure.diagram { position:static; max-height:none; } section.phase { break-before:page; } }
+
+/* shared diagram layout v1 */
+figure.diagram .dl-frame { overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch; overscroll-behavior-x:contain; max-width:100%; }
+figure.diagram.dl-scroll .mermaid { justify-content:flex-start; }
+figure.diagram.dl-scroll svg { flex-shrink:0; }
+figure.diagram .dl-hint { margin:8px 0 0; font-family:var(--sans); font-size:12px; line-height:1.4; color:#5D6B7A; text-align:center; }
+figure.diagram .dl-hint[hidden] { display:none; }
+.ph-body.dl-full { grid-template-columns:minmax(0,1fr); }
+.ph-body.dl-full figure.diagram { position:static; max-height:none; }
+.ph-body.dl-full ol.tasks { grid-template-columns:repeat(auto-fill,minmax(340px,1fr)); }
+@media print { figure.diagram .dl-frame { overflow:visible; } figure.diagram .dl-hint { display:none; } }
 </style></head><body>
 <div class="top"><div class="in"><span><b>mindtensorML</b> · Process maps for AI in investment work</span><span>By Caesar Rana, CFA, APMG CP3P · <a href="https://mindtensorml.github.io/">All maps</a></span></div></div>
 <div class="shell">
@@ -497,10 +506,26 @@ footer { margin-top:96px; padding-top:20px; border-top:1px solid var(--rule); co
 mermaid.initialize({ startOnLoad:false, theme:'base', securityLevel:'loose',
   flowchart:{ htmlLabels:true, curve:'basis', nodeSpacing:28, rankSpacing:34, padding:12 },
   themeVariables:{ fontFamily:'Inter, system-ui, sans-serif', fontSize:'13px', lineColor:'#A59F92', primaryTextColor:'#13202F', edgeLabelBackground:'#FFFFFF', tertiaryTextColor:'#5D6B7A' } });
-(document.fonts ? document.fonts.ready : Promise.resolve()).then(()=>mermaid.run({ querySelector:'.mermaid' })).then(()=>{
-  document.querySelectorAll('figure.diagram svg').forEach(svg=>{ const vb=svg.viewBox && svg.viewBox.baseVal; const fig=svg.closest('figure'); if(!vb||!vb.width||!fig) return;
-    const avail=fig.clientWidth-20; if(avail/vb.width<0.72){ svg.style.maxWidth='none'; svg.style.width=Math.round(vb.width*0.72)+'px'; svg.style.height='auto'; fig.classList.add('wide'); fig.scrollLeft=Math.max(0,(svg.getBoundingClientRect().width-fig.clientWidth)/2); } });
-});
+// shared diagram layout v1
+const DL_FULL_BELOW=0.9, DL_MIN_SCALE=0.7, DL_DESKTOP='(min-width:1101px)';
+function dlPrepare(){ document.querySelectorAll('figure.diagram').forEach(fig=>{ if(fig.querySelector('.dl-frame')) return;
+  const frame=document.createElement('div'); frame.className='dl-frame'; while(fig.firstChild) frame.appendChild(fig.firstChild); fig.appendChild(frame);
+  const hint=document.createElement('figcaption'); hint.className='dl-hint'; hint.hidden=true; hint.textContent='Scroll to see the full diagram'; fig.appendChild(hint); }); }
+function dlFit(){ const desktop=window.matchMedia(DL_DESKTOP).matches;
+  document.querySelectorAll('figure.diagram').forEach(fig=>{ const frame=fig.querySelector('.dl-frame'), svg=fig.querySelector('svg'), hint=fig.querySelector('.dl-hint'), body=fig.closest('.ph-body');
+    const vbw=svg && svg.viewBox && svg.viewBox.baseVal ? svg.viewBox.baseVal.width : 0; if(!frame||!vbw) return;
+    if(svg.dataset.dlStyle===undefined) svg.dataset.dlStyle=svg.getAttribute('style')||'';
+    svg.setAttribute('style', svg.dataset.dlStyle); fig.classList.remove('dl-scroll'); if(body) body.classList.remove('dl-full');
+    if(desktop && body && frame.clientWidth/vbw<DL_FULL_BELOW) body.classList.add('dl-full');
+    if(frame.clientWidth/vbw<DL_MIN_SCALE){ fig.classList.add('dl-scroll'); svg.style.maxWidth='none'; svg.style.width=Math.ceil(vbw*DL_MIN_SCALE)+'px'; svg.style.height='auto'; }
+    const over=frame.scrollWidth>frame.clientWidth+1; if(hint) hint.hidden=!over;
+    frame.scrollLeft=0; if(!over) return;
+    // Open the frame centred on the entry node (the topmost node), so the start of the flow is in view.
+    const nodes=[...svg.querySelectorAll('g.node')].map(n=>n.getBoundingClientRect()).sort((a,b)=>a.top-b.top), fr=frame.getBoundingClientRect();
+    const cx=nodes.length ? nodes[0].left+nodes[0].width/2-fr.left : frame.scrollWidth/2;
+    frame.scrollLeft=Math.max(0, Math.min(frame.scrollWidth-frame.clientWidth, Math.round(cx-frame.clientWidth/2))); }); }
+(document.fonts ? document.fonts.ready : Promise.resolve()).then(()=>mermaid.run({ querySelector:'.mermaid' })).then(()=>{ dlPrepare(); dlFit(); });
+let dlT; window.addEventListener('resize',()=>{ clearTimeout(dlT); dlT=setTimeout(dlFit,150); });
 const links=[...document.querySelectorAll('aside.toc a')]; const map=new Map(links.map(a=>[a.getAttribute('href').slice(1),a]));
 const io=new IntersectionObserver(es=>{ es.forEach(e=>{ if(e.isIntersecting){ links.forEach(l=>l.classList.remove('on')); const a=map.get(e.target.id); if(a) a.classList.add('on'); } }); },{ rootMargin:'-20% 0px -70% 0px' });
 document.querySelectorAll('section[id], #top').forEach(s=>io.observe(s));
