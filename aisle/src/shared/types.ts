@@ -187,7 +187,8 @@ export interface ProductInsight {
   reason: string | null
   intervalDays: number | null
   lastPurchasedAt: number | null
-  prices: Array<{ storeId: string; averageCents: number; lastCents: number; samples: number }>
+  /** Unit prices from receipts; `unit` is what the price is per ("lb"), or null for per item. */
+  prices: Array<{ storeId: string; unit: string | null; averageCents: number; lastCents: number; samples: number }>
   cheaperAt: { storeId: string; savingsCents: number } | null
 }
 

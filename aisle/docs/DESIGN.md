@@ -146,15 +146,15 @@ For an item the app has never seen, it uses the category ("most of your produce 
 
 ### 6.3 When you will need it again
 
-For a product with at least three purchase days, the app takes the median gap between purchases (the median ignores the odd unusual week) and predicts the next purchase at the last purchase plus that gap. When that date is close or past, and the item is not already on the list, it appears under "Running low?" with its reason ("about every 7 days; last bought 8 days ago") and one tap adds it to the right store.
+For a product with at least three purchase days (a receipt and a check-off within 12 hours count as one), the app takes the median of the last eight gaps between purchases (the median ignores the odd unusual week) and predicts the next purchase at the last purchase plus that gap. From shortly before that date (a day early for weekly items, up to three days for monthly ones), and while the item is not already on the list, it appears under "Running low?" with its reason ("about every 7 days; last bought 8 days ago") and one tap adds it to the right store. Once an item is more than three intervals plus two weeks overdue, the app assumes you stopped buying it and drops the suggestion.
 
 ### 6.4 Walking order inside a store
 
-Check-offs at the same store less than 90 minutes apart form a trip. In each trip, items get a position from 0 (first picked up) to 1 (last). Averaging those positions per product, and per category, gives each store its own order, so the produce section of the list comes first at the store where you start in produce. Before there is any history, sections use a sensible default category order.
+Check-offs at the same store less than 90 minutes apart form a trip. Trips with at least three items spread over at least three minutes count (ticking everything off at home afterwards says nothing about the aisles). In each trip, items get a position from 0 (first picked up) to 1 (last). Averaging those positions per product, and per category, with recent trips weighted more, gives each store its own order, so the produce section of the list comes first at the store where you start in produce. Before there is any history, sections use a sensible default category order.
 
 ### 6.5 Prices
 
-Receipt lines give a price per product per store. Insights show the average and last price at each store, and point out when an item is consistently cheaper elsewhere.
+Receipt lines give a price per product per store, divided by the quantity when the line has one (so "3 lb apples $5.97" is $1.99 per lb). Insights show the average and last unit price at each store, and point out when the same unit has cost at least 10% and 20 cents less at another store.
 
 ## 7. Sync and offline
 
@@ -183,7 +183,7 @@ Each step is a separate commit, so the history can be followed in order.
 | 2. Scaffold | One package: Vite + React + Tailwind PWA, Hono server, SQLite migrations, Vitest | Done |
 | 3. Domain logic | Shared parsers (list text, receipts), name normalization, categories, fuzzy matching, store-name canonicalization, with unit tests | Done |
 | 4. Accounts and sync | Sign-up, login, households and invites, stores, list items filed by learned store, operation push and incremental pull, realtime events | Done |
-| 5. Learning | Purchase cadence, walking order, price stats, insights API | Planned |
+| 5. Learning | Purchase cadence, walking order, price stats, insights API | Done |
 | 6. Ingestion | Uploads, job queue, OpenAI-compatible provider, OCR fallback, review and apply | Planned |
 | 7. Web app | List grouped by store, quick add with autocomplete, capture screen (camera, upload, paste, record, dictate), review screen, insights, stores and household settings, offline outbox, share target | Planned |
 | 8. Deploy | Dockerfile and Fly.io config with a persistent volume | Planned |

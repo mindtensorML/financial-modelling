@@ -12,6 +12,7 @@ import { type AppEnv, type ServerContext, setSessionCookie } from './http'
 import { RealtimeHub } from './realtime'
 import { accountRoutes } from './routes/account'
 import { authRoutes } from './routes/auth'
+import { insightsRoutes } from './routes/insights'
 import { syncRoutes } from './routes/sync'
 
 export interface AppDeps {
@@ -93,6 +94,7 @@ export function createApp(deps: AppDeps) {
   app.route('/api/auth', authRoutes(server))
   app.route('/api', accountRoutes(server))
   app.route('/api', syncRoutes(server, deps.heartbeatMs ?? 25_000))
+  app.route('/api', insightsRoutes(server))
 
   app.all('/api/*', (c) => c.json({ error: 'Not found' }, 404))
 
