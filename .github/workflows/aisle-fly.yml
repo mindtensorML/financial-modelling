@@ -2,7 +2,7 @@
 # branch. It needs a repository secret named FLY_API_TOKEN, made at fly.io/dashboard/personal/tokens;
 # without one, a run only says what is missing. Optional: an AI_API_KEY secret, and a SIGNUP_MODE
 # variable set to invite. Re-run the latest run after changing any of them. aisle/README.md has the
-# steps. If Aisle moves to a repository of its own, change the branch below to main.
+# steps, including what to change here if Aisle moves to a repository of its own.
 name: Deploy Aisle to Fly.io
 
 on:

@@ -7,7 +7,7 @@ A shared shopping list that files every item under the store you usually buy it 
 - **Learns as you shop.** Checking items off and capturing receipts teach it where you buy things, how often ("Running low?"), what they cost at each store, and the order you walk each store in, which it uses to sort that store's section.
 - **Shared and offline.** Everyone in the household sees changes within a second. The list keeps working with no signal in the store and catches up when it reconnects. It installs to the home screen like an app.
 
-How it works, and why it is built this way, is in [docs/DESIGN.md](docs/DESIGN.md). To put it online for your household without installing anything, see [Render, from the browser](#render-from-the-browser).
+How it works, and why it is built this way, is in [docs/DESIGN.md](docs/DESIGN.md). To put it online for your household without installing anything, see [Fly.io, from the browser](#flyio-from-the-browser), which should cost nothing, or [Render, from the browser](#render-from-the-browser), at $7.25 a month.
 
 ## Run it locally
 
@@ -62,7 +62,20 @@ Settings come from environment variables, or from a `.env` file in the working d
 
 Aisle is one Node process with a SQLite database on disk, so it needs a single small server with a persistent volume. Serve it over HTTPS: installing to the home screen, offline use, the share target, and voice recording all need a secure origin.
 
-Choose one of the ways below. Each server keeps its own database, so running two would give you two separate lists. Render is set up entirely in the browser; Docker and Fly.io take a few commands in a terminal. None of them needs a Docker Hub account: each one builds the image from this folder's Dockerfile.
+Choose one of the ways below. Each server keeps its own database, so running two would give you two separate lists. Fly.io and Render are both set up in the browser, and Fly.io costs less; Docker takes a few commands on a server of your own. None of them needs a Docker Hub account: each one builds the image from this folder's Dockerfile.
+
+### Fly.io, from the browser
+
+[fly.toml](fly.toml) runs one machine with a 1 GB volume at `/data`, and [a GitHub Actions workflow](../.github/workflows/aisle-fly.yml) builds Aisle and deploys it to [Fly.io](https://fly.io) whenever its code changes on this branch. Running all month, the 512 MB machine costs $3.69 and the volume $0.15. The machine stops when nobody has the app open, so it usually costs less, and Fly currently waives bills under $5 for the organization it creates at sign-up. That waiver is not a published promise, and it does not cover organizations you add later. Once the trial ends (2 hours of machine time or 7 days), Fly needs a card on file.
+
+1. Sign up at [fly.io](https://fly.io/app/sign-up) and add a card on the dashboard's [Billing](https://fly.io/dashboard/personal/billing) page.
+2. Create a token at [fly.io/dashboard/personal/tokens](https://fly.io/dashboard/personal/tokens) and copy all of it, including `FlyV1` at the start.
+3. In this repository on GitHub, open **Settings > Secrets and variables > Actions**, choose **New repository secret**, name it `FLY_API_TOKEN`, and paste the token.
+4. Open the **Actions** tab, open the latest **Deploy Aisle to Fly.io** run, and choose **Re-run all jobs**. The first deploy creates the app and its volume and takes a few minutes. The run's summary shows the address, `https://aisle-mindtensorml.fly.dev`; to use another name, change `app` in `fly.toml` before this step.
+5. Open the address and create your account. That account starts your household. On your phone, open the same address and add it to the home screen: **Share > Add to Home Screen** in Safari on iPhone, or **⋮ > Install app** (or **Add to Home screen**) in Chrome on Android.
+6. Invite the rest of the household from **Settings** with **Copy link** or **Share**. Once they have accounts, add a repository variable on the **Variables** tab of the same GitHub page, named `SIGNUP_MODE` with the value `invite`, and re-run the latest deploy, so nobody else who finds the address can sign up.
+
+To read photos, receipts, and voice notes with AI, add an `AI_API_KEY` repository secret and re-run the latest deploy. Each push that changes `aisle/` deploys by itself, and the app is unreachable for a few seconds while the machine restarts. After a quiet spell, the first visit waits a few seconds for the machine to start; the installed app shows the list straight away and catches up. Fly snapshots the volume every day and keeps each snapshot for 5 days. To stop paying, delete the app from its **Settings** page in the Fly dashboard and delete the `FLY_API_TOKEN` secret; otherwise the next change would create the app again, with an empty list.
 
 ### Render, from the browser
 
@@ -86,20 +99,19 @@ docker run -d --name aisle -p 8080:8080 -v aisle-data:/data aisle
 
 Put it behind a reverse proxy that terminates HTTPS, and add `-e COOKIE_SECURE=true -e TRUST_PROXY=true` when you do. Pass `-e AI_API_KEY=...` to read captures with AI. The container drops root and runs the server as the `node` user. The image has a health check on `/api/health`.
 
-### Fly.io
+### Fly.io, from a terminal
 
-[fly.toml](fly.toml) runs one machine with a volume mounted at `/data`. From this folder:
+[fly.toml](fly.toml) runs one machine with a volume mounted at `/data`. From this folder, with an app name of your own:
 
 ```bash
 fly launch --no-deploy --copy-config --name your-aisle --region ewr
-fly volumes create aisle_data --size 1 --region ewr
 fly secrets set AI_API_KEY=sk-...    # optional
-fly deploy
+fly deploy --ha=false                # the first deploy also creates the volume
 ```
 
 The app is then at `https://your-aisle.fly.dev`. Keep it to a single machine (`fly scale count 1`): the database lives on that machine's volume. The machine stops when nobody has the app open and starts again on the next request. Captures that were being read when it stopped pick up where they left off.
 
-Once everyone in your household has an account, run `fly secrets set SIGNUP_MODE=invite` (or set it in `fly.toml`) so strangers cannot sign up.
+Once everyone in your household has an account, run `fly secrets set SIGNUP_MODE=invite` so strangers cannot sign up.
 
 ### Demo data and backups on a server
 
@@ -151,4 +163,7 @@ git subtree split --prefix=aisle -b aisle-only
 git push git@github.com:you/aisle.git aisle-only:main
 ```
 
-Or copy the folder somewhere else and run `git init` there. Nothing in it depends on files outside the folder. The one file that belongs with it is `render.yaml` at the repository root: if you use Render, move it to the new repository's root and delete its `rootDir` line.
+Or copy the folder somewhere else and run `git init` there. Nothing in it depends on files outside the folder. Two files at the repository root belong with it:
+
+- `render.yaml`: if you use Render, move it to the new repository's root and delete its `rootDir` line.
+- `.github/workflows/aisle-fly.yml`: if you deploy to Fly.io from GitHub, move it to the same path in the new repository. Change its branch to `main`, drop the `aisle/` prefix from its paths, and delete its `defaults` section. Add the `FLY_API_TOKEN` secret, and any others, to the new repository.
