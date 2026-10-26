@@ -6,7 +6,7 @@ import type { RawExtraction } from '../../src/server/ingest/extraction'
 import type { Engines } from '../../src/server/ingest/pipeline'
 import { CaptureQueue } from '../../src/server/ingest/queue'
 import { extractWithRules } from '../../src/server/ingest/rules'
-import type { Capture, CaptureResult, ExtractedItem } from '../../src/shared/types'
+import type { Capture, CaptureResult, ExtractedItem, Insights } from '../../src/shared/types'
 import { Client, HOUR, setup, uuid } from './helpers'
 
 const PNG = Buffer.from(
@@ -301,9 +301,42 @@ describe('captures', () => {
       items: reviewed(ready.extraction!.items).map((i) => ({ ...i, name: 'Eggs' })),
     })
     expect(result).toMatchObject({ purchases: 1, checkedOff: 0 })
-    expect(db.prepare('SELECT source, price_cents, purchased_at, store_id FROM purchases').all()).toEqual([
-      { source: 'receipt', price_cents: 799, purchased_at: checkedAt, store_id: result.storeId },
+    expect(db.prepare('SELECT source, price_cents, purchased_at, store_id, checked_off_at FROM purchases').all()).toEqual([
+      { source: 'receipt', price_cents: 799, purchased_at: checkedAt, store_id: result.storeId, checked_off_at: checkedAt },
     ])
+  })
+
+  it('keeps the walking order of a trip when its receipt comes in', async () => {
+    const { app, queue, clock } = env()
+    const { client } = await signedIn(app)
+    const costco = uuid()
+    await client.ops({ type: 'store.upsert', id: costco, name: 'Costco', color: '#059669', sortOrder: 0 })
+    const ids = { towels: uuid(), eggs: uuid(), peas: uuid() }
+    await client.ops(
+      { type: 'item.add', id: ids.towels, name: 'Paper towels', storeId: costco, at: clock.now() },
+      { type: 'item.add', id: ids.eggs, name: 'Eggs', storeId: costco, at: clock.now() },
+      { type: 'item.add', id: ids.peas, name: 'Frozen peas', storeId: costco, at: clock.now() },
+    )
+    const shopping = clock.now() + HOUR
+    clock.advance(2 * HOUR)
+    for (const [i, id] of [ids.towels, ids.eggs, ids.peas].entries()) {
+      await client.ops({ type: 'item.check', id, checked: true, at: shopping + i * 5 * 60_000 })
+    }
+
+    const created = await capture(client, { text: 'COSTCO\nPAPER TOWELS 19.99\nEGGS 24CT 7.99\nFROZEN PEAS 3.49\nTOTAL 31.47', hint: 'receipt' })
+    await queue.idle()
+    const ready = await client.json<Capture>('GET', `/api/captures/${created.id}`)
+    const names = ['Paper towels', 'Eggs', 'Frozen peas']
+    await client.json('POST', `/api/captures/${created.id}/apply`, {
+      mode: 'receipt',
+      storeId: costco,
+      purchasedAt: shopping + 20 * 60_000,
+      items: reviewed(ready.extraction!.items).map((item, i) => ({ ...item, name: names[i]! })),
+    })
+
+    const insights = await client.json<Insights>('GET', '/api/insights')
+    expect(insights.walkOrder[costco]?.categories).toEqual({ Household: 0, 'Dairy & Eggs': 0.5, Frozen: 1 })
+    expect(insights.stores.find((s) => s.storeId === costco)).toMatchObject({ visits30d: 1, spend30dCents: 3147 })
   })
 
   it('warns when the same receipt is added twice', async () => {

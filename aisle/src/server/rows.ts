@@ -108,6 +108,7 @@ export interface PurchaseRow {
   source: 'receipt' | 'checkoff'
   capture_id: string | null
   list_item_id: string | null
+  checked_off_at: number | null
   created_at: number
 }
 

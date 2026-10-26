@@ -19,6 +19,7 @@ interface PurchaseFact {
   quantity: number | null
   unit: string | null
   source: 'receipt' | 'checkoff'
+  checked_off_at: number | null
 }
 
 function countVisits(times: number[]): number {
@@ -43,7 +44,10 @@ export function buildInsights(db: DB, householdId: string, now: number): Insight
   ).map((s) => s.id)
   const activeStores = new Set(storeIds)
   const facts = db
-    .prepare('SELECT product_id, store_id, purchased_at, price_cents, quantity, unit, source FROM purchases WHERE household_id = ?')
+    .prepare(
+      `SELECT product_id, store_id, purchased_at, price_cents, quantity, unit, source, checked_off_at
+       FROM purchases WHERE household_id = ?`,
+    )
     .all(householdId) as PurchaseFact[]
   const onList = new Set(
     (
@@ -144,12 +148,12 @@ export function buildInsights(db: DB, householdId: string, now: number): Insight
 
   const walkOrder = walkOrders(
     facts
-      .filter((f) => f.source === 'checkoff' && f.store_id !== null && activeStores.has(f.store_id) && productById.has(f.product_id))
+      .filter((f) => f.checked_off_at !== null && f.store_id !== null && activeStores.has(f.store_id) && productById.has(f.product_id))
       .map((f) => ({
         storeId: f.store_id!,
         productId: f.product_id,
         category: productById.get(f.product_id)!.category,
-        at: f.purchased_at,
+        at: f.checked_off_at!,
       })),
     now,
   )

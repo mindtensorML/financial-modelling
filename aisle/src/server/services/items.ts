@@ -261,9 +261,9 @@ export function checkItem(ctx: WriteContext, id: string, checked: boolean, at?: 
     if (item.product_id) {
       db.prepare(
         `INSERT INTO purchases (id, household_id, product_id, store_id, purchased_at, quantity, unit, source,
-           list_item_id, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, 'checkoff', ?, ?)`,
-      ).run(randomUUID(), ctx.householdId, item.product_id, item.store_id, when, item.quantity, item.unit, item.id, ctx.now)
+           list_item_id, checked_off_at, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, 'checkoff', ?, ?, ?)`,
+      ).run(randomUUID(), ctx.householdId, item.product_id, item.store_id, when, item.quantity, item.unit, item.id, when, ctx.now)
       ctx.touchedProducts.add(item.product_id)
     }
   } else {

@@ -163,4 +163,10 @@ export const migrations: string[] = [
   );
   CREATE INDEX applied_ops_time ON applied_ops(applied_at);
   `,
+  // When the item was ticked off in the store. A receipt for the same trip turns a check-off
+  // into a receipt purchase; this keeps the moment it went in the cart, for the walking order.
+  `
+  ALTER TABLE purchases ADD COLUMN checked_off_at INTEGER;
+  UPDATE purchases SET checked_off_at = purchased_at WHERE source = 'checkoff';
+  `,
 ]
