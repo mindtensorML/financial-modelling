@@ -13,7 +13,7 @@
     "dev:web": "vite",
     "build": "npm run build:web && npm run build:server",
     "build:web": "vite build",
-    "build:server": "esbuild src/server/index.ts --bundle --platform=node --format=esm --packages=external --target=node22 --outdir=dist/server",
+    "build:server": "esbuild src/server/index.ts src/server/seed.ts --bundle --platform=node --format=esm --packages=external --target=node22 --outdir=dist/server",
     "start": "node dist/server/index.js",
     "seed:demo": "tsx src/server/seed.ts",
     "test": "vitest run",

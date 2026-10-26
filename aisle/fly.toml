@@ -1,0 +1,44 @@
+# Fly.io deployment. One machine with one volume: SQLite lives on the volume, so do not scale
+# past a single machine. First time (pick your own app name and region):
+#
+#   fly launch --no-deploy --copy-config --name your-aisle --region ewr
+#   fly volumes create aisle_data --size 1 --region ewr
+#   fly secrets set AI_API_KEY=sk-...    # optional; without it captures use OCR and the rule-based parsers
+#   fly deploy
+#
+# See README.md for the rest of the settings.
+
+app = 'your-aisle'
+primary_region = 'ewr'
+
+[env]
+  DATA_DIR = '/data'
+  PORT = '8080'
+  COOKIE_SECURE = 'true'
+  TRUST_PROXY = 'true'
+  SIGNUP_MODE = 'open'
+
+[[mounts]]
+  source = 'aisle_data'
+  destination = '/data'
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  # Stops when nobody has the app open; unfinished captures resume on the next start.
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [[http_service.checks]]
+    grace_period = '10s'
+    interval = '30s'
+    method = 'GET'
+    path = '/api/health'
+    timeout = '5s'
+
+[[vm]]
+  # OCR runs Tesseract in WebAssembly, which needs more than the 256 MB minimum.
+  memory = '512mb'
+  cpu_kind = 'shared'
+  cpus = 1

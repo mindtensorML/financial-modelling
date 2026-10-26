@@ -8,7 +8,7 @@ export interface OcrEngine {
 
 /**
  * Tesseract in WebAssembly. One worker handles jobs one at a time; it starts on first use and
- * downloads the English model (about 4 MB) into the cache directory the first time.
+ * downloads the English model (about 5 MB) into the cache directory the first time.
  */
 export class TesseractOcr implements OcrEngine {
   private worker: Promise<Worker> | null = null
