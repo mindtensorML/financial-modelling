@@ -177,7 +177,7 @@ Each step is a separate commit, so the history can be followed in order.
 | Step | What it delivers | Status |
 | --- | --- | --- |
 | 1. Design | This document | Done |
-| 2. Scaffold | One package: Vite + React + Tailwind PWA, Hono server, SQLite migrations, Vitest | Planned |
+| 2. Scaffold | One package: Vite + React + Tailwind PWA, Hono server, SQLite migrations, Vitest | Done |
 | 3. Domain logic | Shared parsers (list text, receipts), name normalization, categories, fuzzy matching, store-name canonicalization, with unit tests | Planned |
 | 4. Accounts and sync | Sign-up, login, households and invites, stores, list items, operation push and incremental pull, realtime events | Planned |
 | 5. Learning | Store prediction, purchase cadence, walking order, price stats, aliases, insights API | Planned |
