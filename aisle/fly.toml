@@ -1,26 +1,27 @@
 # Fly.io deployment. One machine with one volume: SQLite lives on the volume, so do not scale
-# past a single machine. First time (pick your own app name and region):
+# past a single machine. .github/workflows/aisle-fly.yml deploys this from GitHub; see README.md.
+# To deploy from a terminal instead, pick your own app name and region the first time:
 #
 #   fly launch --no-deploy --copy-config --name your-aisle --region ewr
-#   fly volumes create aisle_data --size 1 --region ewr
 #   fly secrets set AI_API_KEY=sk-...    # optional; without it captures use OCR and the rule-based parsers
-#   fly deploy
+#   fly deploy --ha=false                # the first deploy also creates the volume
 #
 # See README.md for the rest of the settings.
 
-app = 'your-aisle'
+app = 'aisle-mindtensorml'
 primary_region = 'ewr'
 
+# SIGNUP_MODE is left out so a Fly secret, or the workflow's SIGNUP_MODE variable, can set it.
 [env]
   DATA_DIR = '/data'
   PORT = '8080'
   COOKIE_SECURE = 'true'
   TRUST_PROXY = 'fly-client-ip'
-  SIGNUP_MODE = 'open'
 
 [[mounts]]
   source = 'aisle_data'
   destination = '/data'
+  initial_size = '1gb'
 
 [http_service]
   internal_port = 8080
