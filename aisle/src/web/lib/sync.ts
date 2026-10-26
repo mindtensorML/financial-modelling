@@ -77,6 +77,8 @@ export class SyncEngine {
 
   private base = empty()
   private rev = 0
+  /** Whether the copy on screen is the household's: saved on this device, pulled, or edited here. */
+  private loaded = false
   private userId: string | null = null
   private householdId: string | null = null
   private outbox: PendingOp[] = []
@@ -96,6 +98,7 @@ export class SyncEngine {
   async start(me: Me): Promise<void> {
     this.stop()
     this.running = true
+    this.loaded = false
     this.userId = me.user.id
     this.householdId = me.household.id
     const [saved, outbox] = await Promise.all([
@@ -104,7 +107,9 @@ export class SyncEngine {
     ])
     if (!this.running) return
     const mine = saved?.version === 1 && saved.userId === me.user.id
-    if (mine && saved.householdId === me.household.id) {
+    const same = mine && saved.householdId === me.household.id
+    this.loaded = same
+    if (same) {
       this.base = {
         stores: new Map(saved.stores.map((s) => [s.id, s])),
         products: new Map(saved.products.map((p) => [p.id, p])),
@@ -117,8 +122,8 @@ export class SyncEngine {
       this.rev = 0
     }
     // Operations queued for another account or household must not be sent for this one.
-    this.outbox = mine && saved.householdId === me.household.id ? (outbox ?? []) : []
-    this.publish(mine && saved.householdId === me.household.id)
+    this.outbox = same ? (outbox ?? []) : []
+    this.publish()
 
     window.addEventListener('online', this.onOnline)
     document.addEventListener('visibilitychange', this.onVisible)
@@ -144,6 +149,7 @@ export class SyncEngine {
     this.stop()
     this.base = empty()
     this.rev = 0
+    this.loaded = false
     this.outbox = []
     this.state.set(initialState)
     await Promise.all([del(REPLICA_KEY), del(OUTBOX_KEY)]).catch(() => undefined)
@@ -153,6 +159,7 @@ export class SyncEngine {
     if (!inputs.length) return
     for (const input of inputs) this.outbox.push({ op: { ...input, opId: crypto.randomUUID() } as Op, ackRev: null })
     void set(OUTBOX_KEY, this.outbox).catch(() => undefined)
+    this.loaded = true
     this.publish()
     void this.flush()
   }
@@ -280,6 +287,7 @@ export class SyncEngine {
       merge(this.base.captures, res.captures)
     }
     this.rev = res.rev
+    this.loaded = true
     const before = this.outbox.length
     this.settle()
     if (this.outbox.length !== before) void set(OUTBOX_KEY, this.outbox).catch(() => undefined)
@@ -305,14 +313,14 @@ export class SyncEngine {
     }, 400)
   }
 
-  private publish(ready = true): void {
+  private publish(): void {
     const tables = replay(
       this.base,
       this.outbox.map((p) => p.op),
       { userId: this.userId, now: Date.now() },
     )
     this.state.set({
-      ready: ready || this.state.get().ready || this.rev > 0,
+      ready: this.loaded,
       rev: this.rev,
       status: this.status,
       pending: this.outbox.filter((p) => p.ackRev === null).length,
@@ -342,7 +350,10 @@ export class SyncEngine {
   private failed(error: unknown): void {
     if (!this.running) return
     if (error instanceof ApiError && error.status === 401) return
-    this.setStatus(error instanceof OfflineError ? 'offline' : 'error')
+    // Show what this device has rather than a spinner; the status says it is not the latest.
+    this.loaded = true
+    this.status = error instanceof OfflineError ? 'offline' : 'error'
+    this.publish()
     if (!isTransient(error)) console.error(error)
     if (this.retryTimer) return
     this.retryTimer = setTimeout(() => {

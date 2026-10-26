@@ -134,7 +134,7 @@ function CaptureBanner() {
 
 export function ListScreen({ storeFilter }: { storeFilter: string | null }) {
   const me = useMe()
-  const { ready, items, stores, storesById } = useSync()
+  const { ready, status, items, stores, storesById } = useSync()
   const insights = useInsights()
   const [editing, setEditing] = useState<string | null>(null)
   const [onboarding, setOnboarding] = useState(false)
@@ -148,11 +148,14 @@ export function ListScreen({ storeFilter }: { storeFilter: string | null }) {
     (d) => !openProducts.has(d.productId) && (!filter || d.storeId === filter),
   )
   const filterStore = filter && filter !== UNSORTED ? storesById.get(filter) : undefined
+  // Only once the server has confirmed there are no stores: a device that has not synced yet
+  // would otherwise ask a household that already has stores to pick them again.
+  const noStores = ready && status === 'online' && stores.length === 0
   // Stays open after the first store is added, so several can be picked in a row.
   useEffect(() => {
-    if (ready && stores.length === 0) setOnboarding(true)
-  }, [ready, stores.length])
-  const showOnboarding = ready && (stores.length === 0 || onboarding)
+    if (noStores) setOnboarding(true)
+  }, [noStores])
+  const showOnboarding = noStores || (onboarding && stores.length > 0)
 
   const chips = sections.filter((s) => s.openCount > 0 || s.key === filter)
   return (
@@ -207,13 +210,7 @@ export function ListScreen({ storeFilter }: { storeFilter: string | null }) {
                 <PopularStores />
                 {stores.length > 0 && (
                   <div className="mt-3 flex justify-end">
-                    <Button
-                      size="sm"
-                      onClick={() => {
-                        setOnboarding(false)
-                        toast('Add items above, or capture a list or receipt')
-                      }}
-                    >
+                    <Button size="sm" onClick={() => setOnboarding(false)}>
                       Done
                     </Button>
                   </div>
