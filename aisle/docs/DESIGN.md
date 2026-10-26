@@ -126,7 +126,9 @@ All of this runs on the server from the `purchases` and `store_choices` tables, 
 
 ### 6.1 Recognizing the same item
 
-Names are normalized into a key: lowercased, accents and punctuation removed, plurals made singular, filler words dropped, words sorted ("Milk 2%" and "2% milk" share a key). An item matches an existing product if its key matches the product or one of its learned aliases, or if the names are nearly identical by character-trigram similarity (this catches typos and OCR noise). Similar-but-different products such as "almond milk" and "milk" deliberately do not match.
+Names are normalized into a key: lowercased, accents and punctuation removed, plurals made singular, filler words dropped, words sorted ("Milk 2%" and "2% milk" share a key). An item matches an existing product if its key matches the product or one of its learned aliases, or if the keys are nearly identical by edit distance and start with the same letter (this catches typos and OCR noise without confusing "mustard" and "custard"). Failing that, an item whose words match once sizes and descriptors such as "organic" or "1 gal" are dropped is filed as a variant of that product. Similar-but-different products such as "almond milk" and "milk" deliberately do not match.
+
+When two devices add the same thing, the server folds the second into the open item rather than listing it twice; the second item's ID is kept as a pointer, so a check-off sent for it lands on the surviving item.
 
 ### 6.2 Which store an item belongs to
 
@@ -165,7 +167,8 @@ The list must work in a store with no signal, and two people editing at once mus
 
 ## 8. Security and privacy
 
-- Passwords are hashed with scrypt. Sessions are random tokens in HTTP-only, SameSite cookies, and only a hash of each token is stored. Login attempts are rate limited.
+- Passwords are hashed with scrypt. Sessions are random tokens in HTTP-only, SameSite cookies, and only a hash of each token is stored. Login attempts and invite-code guesses are rate limited, and changing a password signs out every other device.
+- Once everyone in a household has an account, `SIGNUP_MODE=invite` closes the server to strangers: new accounts must join an existing household with its invite code.
 - Every request is scoped to the user's household, and state-changing requests must carry a custom header, which a cross-site form cannot send.
 - Uploaded originals are stored on the server's disk and are only served to members of the household. Uploads are size-limited and restricted to image, audio, and text types.
 - When an AI provider is configured, images, audio, and text you capture are sent to it. To keep them on your own hardware, point the provider at a local Ollama vision model, or run without a provider.
@@ -179,8 +182,8 @@ Each step is a separate commit, so the history can be followed in order.
 | 1. Design | This document | Done |
 | 2. Scaffold | One package: Vite + React + Tailwind PWA, Hono server, SQLite migrations, Vitest | Done |
 | 3. Domain logic | Shared parsers (list text, receipts), name normalization, categories, fuzzy matching, store-name canonicalization, with unit tests | Done |
-| 4. Accounts and sync | Sign-up, login, households and invites, stores, list items, operation push and incremental pull, realtime events | Planned |
-| 5. Learning | Store prediction, purchase cadence, walking order, price stats, aliases, insights API | Planned |
+| 4. Accounts and sync | Sign-up, login, households and invites, stores, list items filed by learned store, operation push and incremental pull, realtime events | Done |
+| 5. Learning | Purchase cadence, walking order, price stats, insights API | Planned |
 | 6. Ingestion | Uploads, job queue, OpenAI-compatible provider, OCR fallback, review and apply | Planned |
 | 7. Web app | List grouped by store, quick add with autocomplete, capture screen (camera, upload, paste, record, dictate), review screen, insights, stores and household settings, offline outbox, share target | Planned |
 | 8. Deploy | Dockerfile and Fly.io config with a persistent volume | Planned |

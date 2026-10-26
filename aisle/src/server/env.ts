@@ -1,4 +1,5 @@
 import { resolve } from 'node:path'
+import type { SignupMode } from '../shared/types'
 
 export interface AiConfig {
   apiKey: string
@@ -11,6 +12,9 @@ export interface Config {
   dataDir: string
   port: number
   cookieSecure: boolean
+  /** Read the client address from X-Forwarded-For / Fly-Client-IP; only safe behind a proxy that sets them. */
+  trustProxy: boolean
+  signupMode: SignupMode
   webDir: string
   ai: AiConfig | null
   ocrEnabled: boolean
@@ -27,6 +31,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     dataDir: resolve(env.DATA_DIR || './data'),
     port: Number(env.PORT || 8787),
     cookieSecure: flag(env.COOKIE_SECURE, false),
+    trustProxy: flag(env.TRUST_PROXY, false),
+    signupMode: env.SIGNUP_MODE?.trim().toLowerCase() === 'invite' ? 'invite' : 'open',
     webDir: resolve(env.WEB_DIR || './dist/web'),
     ai: apiKey
       ? {

@@ -113,7 +113,9 @@ export interface Capture {
 }
 
 export interface SyncResponse {
+  householdId: string
   rev: number
+  /** A full snapshot replaces the client's copy; otherwise only rows changed after `since`, including deletions. */
   full: boolean
   stores: Store[]
   products: Product[]
@@ -132,11 +134,36 @@ export interface Me {
   household: { id: string; name: string; inviteCode: string; members: Member[] }
 }
 
+export interface JoinResponse extends Me {
+  /** Open items brought over from the household the user left, when they were its last member. */
+  carried: number
+}
+
+export type OpStatus = 'ok' | 'duplicate' | 'rejected'
+
+export interface OpResult {
+  opId: string
+  status: OpStatus
+  error?: string
+}
+
+export interface OpsResponse {
+  rev: number
+  results: OpResult[]
+}
+
 export interface ServerFeatures {
   ai: boolean
   aiModel: string | null
   transcription: boolean
   ocr: boolean
+}
+
+export type SignupMode = 'open' | 'invite'
+
+export interface ServerConfig {
+  features: ServerFeatures
+  signupMode: SignupMode
 }
 
 export interface DueSoon {

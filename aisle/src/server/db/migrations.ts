@@ -93,6 +93,7 @@ export const migrations: string[] = [
     checked_by TEXT REFERENCES users(id) ON DELETE SET NULL,
     added_by TEXT REFERENCES users(id) ON DELETE SET NULL,
     capture_id TEXT,
+    merged_into TEXT,
     created_at INTEGER NOT NULL,
     updated_at INTEGER NOT NULL,
     deleted_at INTEGER,
@@ -160,5 +161,6 @@ export const migrations: string[] = [
     applied_at INTEGER NOT NULL,
     PRIMARY KEY (household_id, op_id)
   );
+  CREATE INDEX applied_ops_time ON applied_ops(applied_at);
   `,
 ]
