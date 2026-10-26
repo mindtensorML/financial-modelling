@@ -187,6 +187,7 @@ export function CaptureScreen({ shared }: { shared: boolean }) {
   const [text, setText] = useState('')
   const [dragging, setDragging] = useState(false)
   const textArea = useRef<HTMLTextAreaElement>(null)
+  const focusText = useRef(true)
   const hintRef = useRef(hint)
   hintRef.current = hint
   const tookShare = useRef(false)
@@ -237,8 +238,10 @@ export function CaptureScreen({ shared }: { shared: boolean }) {
     return () => document.removeEventListener('paste', onPaste)
   }, [])
 
+  // Not when the box opened for dictation: on a phone, focus brings up the keyboard.
   useEffect(() => {
-    if (writing) textArea.current?.focus()
+    if (writing && focusText.current) textArea.current?.focus()
+    focusText.current = true
   }, [writing])
 
   const onFiles = (event: ChangeEvent<HTMLInputElement>) => {
@@ -271,7 +274,7 @@ export function CaptureScreen({ shared }: { shared: boolean }) {
     toast('Got it. Reading now.')
   }
 
-  const voiceNotes = config ? config.features.transcription : true
+  const transcription = config ? config.features.transcription : true
   const recording = recorder.state === 'recording'
   const recent = captures.slice(0, 40)
   const needsReview = recent.filter((c) => c.status === 'ready').length
@@ -289,7 +292,7 @@ export function CaptureScreen({ shared }: { shared: boolean }) {
       onDrop={onDrop}
       className="relative min-h-[calc(100dvh-5rem)]"
     >
-      <ScreenHeader title="Capture" subtitle="Add from a photo, screenshot, receipt, voice note, or text" />
+      <ScreenHeader title="Capture" subtitle="Photos, receipts, voice notes, or text" />
 
       <div className="space-y-4 px-4 pb-6">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
@@ -304,21 +307,13 @@ export function CaptureScreen({ shared }: { shared: boolean }) {
           <Tile as="label" icon={<ImagePlus className="size-5" aria-hidden />} title="Choose files" detail="Screenshots, photos, audio">
             <input type="file" accept={ACCEPT} multiple className="sr-only" onChange={onFiles} />
           </Tile>
-          {recorder.state !== 'unsupported' && (
+          {transcription && recorder.state !== 'unsupported' ? (
             <Tile
               icon={recording ? <Square className="size-4 fill-current" aria-hidden /> : <Mic className="size-5" aria-hidden />}
               title={recording ? `Recording ${formatElapsed(recorder.elapsed)}` : 'Voice note'}
-              detail={
-                recording
-                  ? 'Tap to finish'
-                  : recorder.state === 'denied'
-                    ? 'Microphone access is blocked'
-                    : voiceNotes
-                      ? 'Say what you need'
-                      : 'Needs an AI provider'
-              }
+              detail={recording ? 'Tap to finish' : recorder.state === 'denied' ? 'Microphone access is blocked' : 'Say what you need'}
               tone={recording ? 'recording' : 'default'}
-              disabled={!voiceNotes || recorder.state === 'starting'}
+              disabled={recorder.state === 'starting'}
               onClick={recording ? recorder.stop : () => void recorder.start()}
             >
               {recording && (
@@ -343,6 +338,32 @@ export function CaptureScreen({ shared }: { shared: boolean }) {
                 </span>
               )}
             </Tile>
+          ) : dictation.supported ? (
+            // Without a transcription provider, the browser's own speech recognition stands in.
+            <Tile
+              icon={dictation.listening ? <Square className="size-4 fill-current" aria-hidden /> : <Mic className="size-5" aria-hidden />}
+              title={dictation.listening ? 'Listening…' : 'Speak a list'}
+              detail={dictation.listening ? 'Tap to finish' : 'Your words appear as text'}
+              tone={dictation.listening ? 'recording' : 'default'}
+              onClick={() => {
+                if (dictation.listening) {
+                  dictation.stop()
+                  return
+                }
+                if (!writing) {
+                  focusText.current = false
+                  setWriting(true)
+                }
+                dictation.start()
+              }}
+            />
+          ) : (
+            <Tile
+              icon={<Mic className="size-5" aria-hidden />}
+              title="Voice note"
+              detail={transcription ? 'Not supported in this browser' : 'Needs an AI provider'}
+              disabled
+            />
           )}
           <Tile
             icon={<Type className="size-5" aria-hidden />}

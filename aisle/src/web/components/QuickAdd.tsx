@@ -45,9 +45,18 @@ export function addItems(entries: QuickAddItem[], storeId: string | null = null)
     if (!item) merged++
     else counts.set(where(item), (counts.get(where(item)) ?? 0) + 1)
   }
-  const parts = [...counts].map(([name, n]) => `${n} to ${name}`)
-  if (merged) parts.push(`${merged} already on the list`)
-  toast(`Added ${plural(entries.length - merged, 'item')}: ${parts.join(', ')}`)
+  const added = plural(entries.length - merged, 'item')
+  const already = merged ? ` (${merged} already on the list)` : ''
+  if (counts.size === 1) {
+    const [place] = counts.keys()
+    toast(
+      place === 'Unsorted'
+        ? `Added ${added} to Unsorted${already}. Tap one to pick its store.`
+        : `Added ${added} to ${place}${already}`,
+    )
+    return
+  }
+  toast(`Added ${added}: ${[...counts].map(([name, n]) => `${n} to ${name}`).join(', ')}${already}`)
 }
 
 export function QuickAdd({ storeId }: { storeId: string | null }) {

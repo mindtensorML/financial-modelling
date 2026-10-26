@@ -364,15 +364,17 @@ function HouseholdSection({ joinCode }: { joinCode: string | null }) {
           </h3>
           <ul className="space-y-1.5">
             {household.members.map((m) => (
-              <li key={m.id} className="flex items-center gap-3 text-sm">
-                <span className="grid size-8 place-items-center rounded-full bg-emerald-100 font-semibold text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+              <li key={m.id} className="flex items-center gap-3">
+                <span className="grid size-8 shrink-0 place-items-center rounded-full bg-emerald-100 text-sm font-semibold text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
                   {m.name.slice(0, 1).toUpperCase()}
                 </span>
-                <span className="min-w-0 flex-1 truncate">
-                  {m.name}
-                  {m.id === user.id && <span className="text-stone-500"> (you)</span>}
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-medium">
+                    {m.name}
+                    {m.id === user.id && <span className="font-normal text-stone-500"> (you)</span>}
+                  </span>
+                  <span className="block truncate text-xs text-stone-500 dark:text-stone-400">{m.email}</span>
                 </span>
-                <span className="truncate text-stone-500">{m.email}</span>
               </li>
             ))}
           </ul>
