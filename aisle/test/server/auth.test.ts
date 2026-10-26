@@ -91,6 +91,42 @@ describe('accounts', () => {
     expect(statuses[10]).toBe(429)
   })
 
+  it.each([
+    [undefined, null],
+    ['false', null],
+    ['true', 'x-forwarded-for'],
+    [' CF-Connecting-IP ', 'cf-connecting-ip'],
+    ['fly-client-ip', 'fly-client-ip'],
+  ])('reads TRUST_PROXY=%j as the client address header %j', (value, header) => {
+    expect(loadConfig({ TRUST_PROXY: value }).clientIpHeader).toBe(header)
+  })
+
+  it('refuses a TRUST_PROXY that is not a header name', () => {
+    expect(() => loadConfig({ TRUST_PROXY: 'cf connecting ip' })).toThrow(/TRUST_PROXY/)
+  })
+
+  it('keys login limits on the header the host sets, so forged ones do not help', async () => {
+    const attempts = async (env: NodeJS.ProcessEnv, headers: (i: number) => Record<string, string>) => {
+      const { app } = setup({ env })
+      await new Client(app).signup('Ana', 'ana@example.com')
+      const statuses: number[] = []
+      for (let i = 0; i < 11; i++) {
+        const body = { email: 'ana@example.com', password: `guess ${i}` }
+        statuses.push((await new Client(app).request('POST', '/api/auth/login', body, headers(i))).status)
+      }
+      return statuses
+    }
+    // Render: Cloudflare sets CF-Connecting-IP and passes along whatever X-Forwarded-For the client sent.
+    const render = { TRUST_PROXY: 'cf-connecting-ip' }
+    const forged = await attempts(render, (i) => ({ 'CF-Connecting-IP': '203.0.113.7', 'X-Forwarded-For': `198.51.100.${i}` }))
+    expect(forged.at(-1)).toBe(429)
+    const twoVisitors = await attempts(render, (i) => ({ 'CF-Connecting-IP': i < 6 ? '203.0.113.7' : '203.0.113.8' }))
+    expect(twoVisitors.every((s) => s === 401)).toBe(true)
+    // Without TRUST_PROXY, headers are ignored and everyone shares the connection's address.
+    const ignored = await attempts({}, (i) => ({ 'CF-Connecting-IP': `203.0.113.${i}`, 'X-Forwarded-For': `198.51.100.${i}` }))
+    expect(ignored.at(-1)).toBe(429)
+  })
+
   it('expires sessions and slides them forward while in use', async () => {
     const { app, clock } = setup()
     const ana = new Client(app)

@@ -15,7 +15,7 @@ primary_region = 'ewr'
   DATA_DIR = '/data'
   PORT = '8080'
   COOKIE_SECURE = 'true'
-  TRUST_PROXY = 'true'
+  TRUST_PROXY = 'fly-client-ip'
   SIGNUP_MODE = 'open'
 
 [[mounts]]

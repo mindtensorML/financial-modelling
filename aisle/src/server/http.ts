@@ -49,11 +49,9 @@ export function requireUser(c: AppContext): UserRow {
   return user
 }
 
-export function clientIp(c: AppContext, trustProxy: boolean): string {
-  if (trustProxy) {
-    const forwarded = c.req.header('fly-client-ip') ?? c.req.header('x-forwarded-for')?.split(',')[0]
-    if (forwarded?.trim()) return forwarded.trim()
-  }
+export function clientIp(c: AppContext, header: string | null): string {
+  const forwarded = header ? c.req.header(header)?.split(',')[0]?.trim() : undefined
+  if (forwarded) return forwarded
   const incoming = (c.env as { incoming?: IncomingMessage } | undefined)?.incoming
   return incoming?.socket?.remoteAddress ?? 'local'
 }

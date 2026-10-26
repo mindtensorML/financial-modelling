@@ -49,7 +49,7 @@ Settings come from environment variables, or from a `.env` file in the working d
 | `DATA_DIR` | `./data` (`/data` in Docker) | Where the SQLite database, uploaded originals, and the OCR model cache live |
 | `PORT` | `8787` (`8080` in Docker) | HTTP port |
 | `COOKIE_SECURE` | `false` | Marks session cookies Secure. Set to `true` when serving over HTTPS |
-| `TRUST_PROXY` | `false` | Reads the client address from `X-Forwarded-For` or `Fly-Client-IP` for rate limits. Only safe behind a proxy that sets them |
+| `TRUST_PROXY` | `false` | Where rate limits find the visitor's address behind a proxy: `true` reads the first `X-Forwarded-For` entry, or name the header your host sets (`fly-client-ip` on Fly.io, `cf-connecting-ip` on Render). Only use a header that the proxy overwrites |
 | `SIGNUP_MODE` | `open` | `invite` only allows new accounts that join an existing household with its invite code |
 | `AI_API_KEY` | empty | Turns on AI extraction (`OPENAI_API_KEY` also works) |
 | `AI_BASE_URL` | `https://api.openai.com/v1` | Any OpenAI-compatible API |

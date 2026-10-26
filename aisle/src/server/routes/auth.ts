@@ -43,7 +43,7 @@ export function authRoutes(server: ServerContext) {
   }
 
   app.post('/signup', async (c) => {
-    if (!limits.signup.allow(clientIp(c, config.trustProxy), server.now())) {
+    if (!limits.signup.allow(clientIp(c, config.clientIpHeader), server.now())) {
       throw new HttpError(429, 'Too many sign-ups from this network. Try again later.')
     }
     const body = await readJson(c, signupSchema)
@@ -77,7 +77,7 @@ export function authRoutes(server: ServerContext) {
   app.post('/login', async (c) => {
     const body = await readJson(c, loginSchema)
     const now = server.now()
-    const key = `${clientIp(c, config.trustProxy)}|${body.email}`
+    const key = `${clientIp(c, config.clientIpHeader)}|${body.email}`
     if (!limits.login.allow(key, now) || !limits.loginAccount.allow(body.email, now)) {
       throw new HttpError(429, 'Too many attempts. Wait a few minutes and try again.')
     }
