@@ -1,6 +1,9 @@
 import type { Category } from '../../shared/categories'
-import type { Capture, Extraction } from '../../shared/types'
+import type { Capture, Extraction, ListItem, Product } from '../../shared/types'
 import { fromDateTimeInput, toDateTimeInput } from './format'
+
+const HOUR = 3_600_000
+const DAY = 24 * HOUR
 
 export type ReviewMode = 'list' | 'receipt'
 
@@ -15,6 +18,8 @@ export interface ReviewLine {
   name: string
   /** What the engine called it; null for lines the user added. Renaming drops its category. */
   originalName: string | null
+  /** The household product the engine matched it to. */
+  productId: string | null
   rawText: string | null
   quantity: string
   unit: string
@@ -64,6 +69,7 @@ export function blankLine(store: StoreChoice = ''): ReviewLine {
     include: true,
     name: '',
     originalName: null,
+    productId: null,
     rawText: null,
     quantity: '',
     unit: '',
@@ -88,6 +94,7 @@ export function initialForm(capture: Capture, extraction: Extraction): ReviewFor
       include: true,
       name: item.name,
       originalName: item.name,
+      productId: item.productId,
       rawText: item.rawText,
       quantity: numberText(item.quantity),
       unit: item.unit ?? '',
@@ -125,6 +132,32 @@ export function parsePrice(text: string): number | null {
 
 export function includedLines(lines: ReviewLine[]): ReviewLine[] {
   return lines.filter((l) => l.include && l.name.trim())
+}
+
+/** When the receipt's purchases happened, as the server will record it (it distrusts misread dates). */
+export function receiptTime(form: ReviewForm, capturedAt: number, now = Date.now()): number {
+  const at = fromDateTimeInput(form.purchasedAt) ?? capturedAt
+  return at > now + HOUR || at < now - 400 * DAY ? capturedAt : at
+}
+
+/**
+ * What recording a receipt line does to the list. Like the server, only an item that was on the
+ * list before the trip is ticked off; one added since is for the next trip. Nothing is promised
+ * for a renamed line, which may match another product, or for a product already bought within
+ * the same 12 hours: the server folds the receipt into that check-off and leaves the list alone.
+ */
+export function receiptListEffect(
+  line: ReviewLine,
+  items: ListItem[],
+  products: ReadonlyMap<string, Product>,
+  purchasedAt: number,
+): 'checksOff' | 'addedAfter' | null {
+  if (!line.productId || line.name.trim() !== line.originalName) return null
+  const open = items.filter((i) => i.productId === line.productId && i.checkedAt === null)
+  if (!open.length) return null
+  const last = products.get(line.productId)?.lastPurchasedAt
+  if (last != null && Math.abs(last - purchasedAt) <= 12 * HOUR) return null
+  return open.some((i) => i.createdAt <= purchasedAt + HOUR) ? 'checksOff' : 'addedAfter'
 }
 
 /** The sum of the included receipt lines that have a price, or null when none do. */

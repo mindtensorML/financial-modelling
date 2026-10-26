@@ -1,6 +1,15 @@
 import { describe, expect, it } from 'vitest'
-import { buildApplyBody, initialForm, linesTotal, parseAmount, parsePrice, type ReviewForm } from '../../src/web/lib/review'
-import { capture, extracted, extraction } from './fixtures'
+import {
+  buildApplyBody,
+  initialForm,
+  linesTotal,
+  parseAmount,
+  parsePrice,
+  receiptListEffect,
+  receiptTime,
+  type ReviewForm,
+} from '../../src/web/lib/review'
+import { capture, extracted, extraction, item, product, uuid } from './fixtures'
 
 const COSTCO = '00000000-0000-4000-8000-00000000c057'
 const TJ = '00000000-0000-4000-8000-00000000071a'
@@ -115,6 +124,49 @@ describe('buildApplyBody for a receipt', () => {
     expect(linesTotal(f.lines)).toBe(1.99)
     f.lines[0]!.price = ''
     expect(linesTotal(f.lines)).toBeNull()
+  })
+})
+
+describe('what a receipt does to the list', () => {
+  const now = new Date(2026, 9, 26, 12, 0).getTime()
+  const trip = new Date(2026, 9, 24, 17, 42).getTime()
+  const bananas = uuid()
+  const receipt = (): ReviewForm =>
+    initialForm(
+      capture(),
+      extraction([extracted('Bananas', { productId: bananas, rawText: 'BANANAS', price: 1.99, onList: true })], {
+        kind: 'receipt',
+        purchasedAt: '2026-10-24T17:42',
+      }),
+    )
+
+  it('records the purchase at the receipt time, unless that time is impossible', () => {
+    const f = receipt()
+    expect(receiptTime(f, 1, now)).toBe(trip)
+    f.purchasedAt = '2027-03-01T10:00'
+    expect(receiptTime(f, 5, now)).toBe(5)
+    f.purchasedAt = ''
+    expect(receiptTime(f, 7, now)).toBe(7)
+  })
+
+  const products = (lastPurchasedAt: number | null = null) =>
+    new Map([[bananas, product('Bananas', 'Produce', { id: bananas, lastPurchasedAt })]])
+  const before = () => item('Bananas', 'Produce', { productId: bananas, createdAt: trip - 86_400_000 })
+
+  it('ticks off only items that were on the list before the trip', () => {
+    const line = receipt().lines[0]!
+    const after = item('Bananas', 'Produce', { productId: bananas, createdAt: trip + 86_400_000 })
+    expect(receiptListEffect(line, [before()], products(), trip)).toBe('checksOff')
+    expect(receiptListEffect(line, [after], products(), trip)).toBe('addedAfter')
+    expect(receiptListEffect(line, [{ ...before(), checkedAt: trip }], products(), trip)).toBeNull()
+    expect(receiptListEffect(line, [], products(), trip)).toBeNull()
+  })
+
+  it('promises nothing when the product was already bought on this trip, or the line was renamed', () => {
+    const line = receipt().lines[0]!
+    expect(receiptListEffect(line, [before()], products(trip - 3_600_000), trip)).toBeNull()
+    expect(receiptListEffect(line, [before()], products(trip - 3 * 86_400_000), trip)).toBe('checksOff')
+    expect(receiptListEffect({ ...line, name: 'Plantains' }, [before()], products(), trip)).toBeNull()
   })
 })
 

@@ -16,6 +16,8 @@ import {
   initialForm,
   linesTotal,
   NEW_STORE,
+  receiptListEffect,
+  receiptTime,
   type ReviewForm,
   type ReviewLine,
   type ReviewMode,
@@ -71,7 +73,11 @@ function Preview({ capture }: { capture: Capture }) {
         <img
           src={captureFileUrl(capture.id)}
           alt={captureTitle(capture)}
-          className={cx('w-full object-contain transition-[max-height]', open ? 'max-h-[80dvh]' : 'max-h-56 object-cover')}
+          className={cx(
+            'w-full object-contain transition-[max-height]',
+            // Collapsed, show the top: where a receipt names the store and a list starts.
+            open ? 'max-h-[80dvh]' : 'max-h-56 object-cover object-top',
+          )}
         />
       </button>
     )
@@ -164,6 +170,7 @@ function LineEditor({
   mode,
   storeOptions,
   currency,
+  effect,
   onChange,
   onRemove,
 }: {
@@ -171,11 +178,16 @@ function LineEditor({
   mode: ReviewMode
   storeOptions: Array<{ value: string; label: string }>
   currency: string
+  /** Receipts: what recording this line does to the list. */
+  effect: ReturnType<typeof receiptListEffect>
   onChange: (patch: Partial<ReviewLine>) => void
   onRemove: () => void
 }) {
   const options = line.defaultStore === '' ? [{ value: '', label: 'Unsorted' }, ...storeOptions] : storeOptions
   const known = options.some((o) => o.value === line.store)
+  const raw = line.rawText && line.rawText.trim().toLowerCase() !== line.name.trim().toLowerCase() ? line.rawText : null
+  const reason = mode === 'list' && line.store === line.defaultStore ? line.reason : null
+  const onList = mode === 'list' && line.onList
   return (
     <li className={cx('flex gap-3 px-4 py-3', !line.include && 'opacity-55')}>
       <button
@@ -251,15 +263,15 @@ function LineEditor({
             </div>
           )}
         </div>
-        {(line.rawText || line.onList || (mode === 'list' && line.reason && line.store === line.defaultStore)) && (
+        {(raw || reason || onList || (mode === 'receipt' && effect)) && (
           <p className="flex flex-wrap gap-x-2 gap-y-1 text-xs text-stone-500 dark:text-stone-400">
-            {line.rawText && line.rawText !== line.name && <span className="font-mono">“{line.rawText}”</span>}
-            {mode === 'list' && line.reason && line.store === line.defaultStore && <span>{line.reason}</span>}
-            {line.onList && (
-              <span className="font-medium text-emerald-700 dark:text-emerald-400">
-                {mode === 'receipt' ? 'On your list: will be checked off' : 'Already on your list'}
-              </span>
+            {raw && <span className="font-mono">“{raw}”</span>}
+            {reason && <span>{reason}</span>}
+            {onList && <span className="font-medium text-emerald-700 dark:text-emerald-400">Already on your list</span>}
+            {mode === 'receipt' && effect === 'checksOff' && (
+              <span className="font-medium text-emerald-700 dark:text-emerald-400">Checks it off your list</span>
             )}
+            {mode === 'receipt' && effect === 'addedAfter' && <span>Stays on your list: it was added after this trip</span>}
           </p>
         )}
       </div>
@@ -268,7 +280,7 @@ function LineEditor({
 }
 
 function Editor({ capture, extraction }: { capture: Capture; extraction: Extraction }) {
-  const { stores, storesById } = useSync()
+  const { stores, storesById, items, products } = useSync()
   const [form, setForm] = useState<ReviewForm>(() => initialForm(capture, extraction))
   const [busy, setBusy] = useState(false)
   const currency = extraction.currency ?? localCurrency()
@@ -309,6 +321,7 @@ function Editor({ capture, extraction }: { capture: Capture; extraction: Extract
   ]
 
   const included = includedLines(form.lines)
+  const tripAt = receiptTime(form, capture.createdAt)
   const total = form.mode === 'receipt' ? linesTotal(form.lines) : null
   const mismatch = total !== null && extraction.total !== null && Math.abs(total - extraction.total) > 0.05
   const fileAll = (store: string) => setForm((f) => ({ ...f, lines: f.lines.map((l) => (l.include ? { ...l, store } : l)) }))
@@ -348,7 +361,7 @@ function Editor({ capture, extraction }: { capture: Capture; extraction: Extract
         <p className="text-sm text-stone-600 dark:text-stone-400">
           {form.mode === 'list'
             ? 'These go on your shopping list, each filed under its store. Fix anything that was misread.'
-            : 'These are recorded as purchases, so Aisle learns where you buy things, how often, and at what price. Matching items on your list are checked off.'}
+            : 'These are recorded as purchases, so Aisle learns where you buy things, how often, and at what price. Items that were on your list before this trip are checked off.'}
         </p>
 
         {extraction.warnings.map((warning) => (
@@ -431,6 +444,7 @@ function Editor({ capture, extraction }: { capture: Capture; extraction: Extract
                   mode={form.mode}
                   storeOptions={storeOptions}
                   currency={currency}
+                  effect={form.mode === 'receipt' ? receiptListEffect(line, items, products, tripAt) : null}
                   onChange={(patch) => setLine(line.key, patch)}
                   onRemove={() => setForm((f) => ({ ...f, lines: f.lines.filter((l) => l.key !== line.key) }))}
                 />
