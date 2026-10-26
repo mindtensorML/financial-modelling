@@ -84,6 +84,26 @@ describe('parseListText', () => {
     ])
   })
 
+  it('files a "Store: items" line on its own, without starting a section', () => {
+    const items = parseListText("Costco: paper towels, olive oil\nTrader Joe's: bananas\nbirthday candles\nTarget:\nshampoo")
+    expect(items.map((i) => [i.name, i.storeHint])).toEqual([
+      ['Paper towels', 'Costco'],
+      ['Olive oil', 'Costco'],
+      ['Bananas', "Trader Joe's"],
+      ['Birthday candles', null],
+      ['Shampoo', 'Target'],
+    ])
+  })
+
+  it('keeps the section store for an inline category line', () => {
+    const items = parseListText('Costco:\nProduce: apples, kale\npaper towels')
+    expect(items.map((i) => [i.name, i.storeHint, i.categoryHint])).toEqual([
+      ['Apples', 'Costco', 'Produce'],
+      ['Kale', 'Costco', 'Produce'],
+      ['Paper towels', 'Costco', null],
+    ])
+  })
+
   it('uses the household store names for headings', () => {
     const items = parseListText("joe's market\nsourdough\nCostco hot dogs", { knownStores: ["Joe's Market"] })
     expect(items.map((i) => [i.name, i.storeHint])).toEqual([

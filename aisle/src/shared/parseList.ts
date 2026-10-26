@@ -401,18 +401,22 @@ export function parseListText(text: string, options: ParseOptions = {}): ParsedI
   for (const rawLine of text.split(/\r?\n/)) {
     let line = rawLine.replace(BULLET, '').trim()
     if (!line) continue
+    let lineStore: string | null = storeHint
+    let lineCategory: Category | null = categoryHint
     const heading = isNoiseLine(line) ? null : detectHeading(line, knownStores)
     if (heading) {
-      if (heading.kind === 'store') {
-        storeHint = heading.value
-        categoryHint = null
-      } else if (heading.kind === 'category') {
-        categoryHint = heading.value
+      if (heading.kind === 'category') {
+        lineCategory = heading.value
       } else if (heading.value) {
-        storeHint = heading.value
-        categoryHint = null
+        lineStore = heading.value
+        lineCategory = null
       }
-      if (!heading.rest) continue
+      // A heading on a line of its own starts a section; "Costco: paper towels, olive oil" files only that line.
+      if (!heading.rest) {
+        storeHint = lineStore
+        categoryHint = lineCategory
+        continue
+      }
       line = heading.rest
     } else if (isNoiseLine(line)) {
       continue
@@ -423,10 +427,10 @@ export function parseListText(text: string, options: ParseOptions = {}): ParsedI
       for (const part of parts) {
         const item = parseItemText(part)
         if (!item) continue
-        const key = `${nameKey(item.name)}|${storeHint ?? ''}`
+        const key = `${nameKey(item.name)}|${lineStore ?? ''}`
         if (seen.has(key)) continue
         seen.add(key)
-        items.push({ ...item, storeHint, categoryHint })
+        items.push({ ...item, storeHint: lineStore, categoryHint: lineCategory })
         if (items.length >= 200) return items
       }
     }
