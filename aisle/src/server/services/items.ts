@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import type { Category } from '../../shared/categories'
+import { mergeNote, mergeQuantity } from '../../shared/merge'
 import { displayName, nameKey } from '../../shared/normalize'
 import { canonicalStoreName, storeKey } from '../../shared/stores'
 import type { StoreSource } from '../../shared/types'
@@ -13,7 +14,6 @@ import { createStore, findStoreByName, getStore, learnStoreAlias } from './store
 
 const MAX_PAST_MS = 30 * 86_400_000
 const MAX_FUTURE_MS = 5 * 60_000
-const MAX_NOTE = 500
 
 /** Device clocks drift and offline queues get old; keep client times within a sane window. */
 export function clampTime(at: number | undefined, now: number): number {
@@ -65,25 +65,6 @@ function explicitPlacement(ctx: WriteContext, storeId?: string | null, storeHint
     findStoreByName(ctx.db, ctx.householdId, hint) ?? createStore(ctx, canonicalStoreName(hint), { reviveDeleted: true })
   if (storeKey(hint) !== storeKey(store.name)) learnStoreAlias(ctx, hint, store.id)
   return { storeId: store.id, source: 'hint', reason: `You wrote "${hint}"` }
-}
-
-function mergeQuantity(
-  open: Pick<ItemRow, 'quantity' | 'unit'>,
-  quantity: number | null | undefined,
-  unit: string | null | undefined,
-): { quantity: number | null; unit: string | null } {
-  if (quantity == null) return { quantity: open.quantity, unit: open.unit }
-  if (open.quantity == null) return { quantity, unit: unit ?? open.unit }
-  // The same thing written twice (two devices, or a photo of a list already typed in) is
-  // one need, not two, so keep the larger amount rather than adding them.
-  if ((unit ?? null) === open.unit) return { quantity: Math.max(open.quantity, quantity), unit: open.unit }
-  return { quantity: open.quantity, unit: open.unit }
-}
-
-function mergeNote(existing: string | null, incoming: string | null | undefined): string | null {
-  const note = incoming?.trim()
-  if (!note || existing?.toLowerCase().includes(note.toLowerCase())) return existing
-  return (existing ? `${existing}; ${note}` : note).slice(0, MAX_NOTE)
 }
 
 export interface AddItemInput {

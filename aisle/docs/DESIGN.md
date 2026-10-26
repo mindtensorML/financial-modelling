@@ -194,7 +194,7 @@ Each step is a separate commit, so the history can be followed in order.
 | 4. Accounts and sync | Sign-up, login, households and invites, stores, list items filed by learned store, operation push and incremental pull, realtime events | Done |
 | 5. Learning | Purchase cadence, walking order, price stats, insights API | Done |
 | 6. Ingestion | Uploads, job queue, OpenAI-compatible provider, OCR fallback, review and apply | Done |
-| 7. Web app | List grouped by store, quick add with autocomplete, capture screen (camera, upload, paste, record, dictate), review screen, insights, stores and household settings, offline outbox, share target | Planned |
+| 7. Web app | List grouped by store, quick add with autocomplete, capture screen (camera, upload, paste, record, dictate), review screen, insights, stores and household settings, offline outbox, share target | Done |
 | 8. Deploy | Dockerfile and Fly.io config with a persistent volume | Planned |
 
 Next steps, roughly in order of value:
