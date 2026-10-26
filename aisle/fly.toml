@@ -1,0 +1,45 @@
+# Fly.io deployment. One machine with one volume: SQLite lives on the volume, so do not scale
+# past a single machine. .github/workflows/aisle-fly.yml deploys this from GitHub; see README.md.
+# To deploy from a terminal instead, pick your own app name and region the first time:
+#
+#   fly launch --no-deploy --copy-config --name your-aisle --region ewr
+#   fly secrets set AI_API_KEY=sk-...    # optional; without it captures use OCR and the rule-based parsers
+#   fly deploy --ha=false                # the first deploy also creates the volume
+#
+# See README.md for the rest of the settings.
+
+app = 'aisle-mindtensorml'
+primary_region = 'ewr'
+
+# SIGNUP_MODE is left out so a Fly secret, or the workflow's SIGNUP_MODE variable, can set it.
+[env]
+  DATA_DIR = '/data'
+  PORT = '8080'
+  COOKIE_SECURE = 'true'
+  TRUST_PROXY = 'fly-client-ip'
+
+[[mounts]]
+  source = 'aisle_data'
+  destination = '/data'
+  initial_size = '1gb'
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  # Stops when nobody has the app open; unfinished captures resume on the next start.
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [[http_service.checks]]
+    grace_period = '10s'
+    interval = '30s'
+    method = 'GET'
+    path = '/api/health'
+    timeout = '5s'
+
+[[vm]]
+  # OCR runs Tesseract in WebAssembly, which needs more than the 256 MB minimum.
+  memory = '512mb'
+  cpu_kind = 'shared'
+  cpus = 1

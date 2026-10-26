@@ -1,0 +1,83 @@
+# Builds Aisle (the aisle/ folder) and deploys it to Fly.io each time its code changes on this
+# branch. It needs a repository secret named FLY_API_TOKEN, made at fly.io/dashboard/personal/tokens;
+# without one, a run only says what is missing. Optional: an AI_API_KEY secret, and a SIGNUP_MODE
+# variable set to invite. Re-run the latest run after changing any of them. aisle/README.md has the
+# steps, including what to change here if Aisle moves to a repository of its own.
+name: Deploy Aisle to Fly.io
+
+on:
+  push:
+    branches: [cursor/aisle-shopping-list-app-f2da]
+    paths:
+      - aisle/**
+      - .github/workflows/aisle-fly.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: aisle-fly-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: aisle
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Check for the Fly.io token
+        id: token
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: |
+          if [ -n "$FLY_API_TOKEN" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            message="Not deployed: add a repository secret named FLY_API_TOKEN under Settings > Secrets and variables > Actions, then re-run this workflow."
+            echo "::notice::$message"
+            echo "$message" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+        if: steps.token.outputs.ready == 'true'
+
+      - name: Create the app on the first deploy
+        if: steps.token.outputs.ready == 'true'
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: |
+          app=$(sed -nE "s/^app = '([^']+)'.*/\1/p" fly.toml)
+          echo "FLY_APP=$app" >> "$GITHUB_ENV"
+          if ! flyctl status > /dev/null 2>&1; then
+            # Bills under $5 are waived only for the organization Fly makes at sign-up.
+            flyctl apps create "$app" --org personal
+          fi
+
+      - name: Pass on the AI key, if there is one
+        if: steps.token.outputs.ready == 'true'
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+          AI_API_KEY: ${{ secrets.AI_API_KEY }}
+        run: |
+          if [ -n "$AI_API_KEY" ]; then
+            printf 'AI_API_KEY=%s\n' "$AI_API_KEY" | flyctl secrets import --stage
+          fi
+
+      # Builds on this runner rather than Fly's builders, which Fly plans to start charging for.
+      # One machine only: the database lives on its volume, which the first deploy creates.
+      - name: Build and deploy
+        if: steps.token.outputs.ready == 'true'
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+          SIGNUP_MODE: ${{ vars.SIGNUP_MODE }}
+        run: |
+          args=(--local-only --ha=false --yes)
+          if [ -n "$SIGNUP_MODE" ]; then
+            args+=(--env "SIGNUP_MODE=$SIGNUP_MODE")
+          fi
+          flyctl deploy "${args[@]}"
+          echo "Aisle is live at https://$FLY_APP.fly.dev" >> "$GITHUB_STEP_SUMMARY"
