@@ -19,7 +19,7 @@ export function parseQuickAdd(
   text: string,
   knownStores: string[] = [],
   knownProducts: string[] = [],
-  options: { splitRuns?: boolean } = {},
+  options: { splitRuns?: boolean; people?: string[] } = {},
 ): QuickAddItem[] {
   let body = text
   let hint: string | null = null
@@ -28,7 +28,7 @@ export function parseQuickAdd(
     hint = at[1]!.trim()
     body = text.slice(0, at.index)
   }
-  return parseListText(body, { knownStores, knownProducts, splitRuns: options.splitRuns }).map((item) => ({
+  return parseListText(body, { knownStores, knownProducts, people: options.people, splitRuns: options.splitRuns }).map((item) => ({
     name: item.name,
     quantity: item.quantity,
     unit: item.unit,

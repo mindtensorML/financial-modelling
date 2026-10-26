@@ -3,6 +3,7 @@ import { type KeyboardEvent, useId, useMemo, useRef, useState } from 'react'
 import type { ListItem } from '../../shared/types'
 import { plural } from '../lib/format'
 import { applySuggestion, currentSegment, parseQuickAdd, type QuickAddItem, suggestProducts } from '../lib/quickAdd'
+import { useMe } from '../lib/session'
 import { useDictation } from '../lib/speech'
 import { sync, useSync } from '../lib/sync'
 import { toast } from '../lib/toast'
@@ -61,6 +62,7 @@ export function addItems(entries: QuickAddItem[], storeId: string | null = null)
 
 export function QuickAdd({ storeId }: { storeId: string | null }) {
   const { products, items, stores, storesById } = useSync()
+  const { members } = useMe().household
   const [text, setText] = useState('')
   const [dictated, setDictated] = useState(false)
   const [focused, setFocused] = useState(false)
@@ -89,7 +91,7 @@ export function QuickAdd({ storeId }: { storeId: string | null }) {
       value,
       stores.map((s) => s.name),
       [...products.values()].map((p) => p.name),
-      { splitRuns: dictated },
+      { splitRuns: dictated, people: members.map((m) => m.name) },
     )
     if (!entries.length) return
     addItems(entries, storeId)

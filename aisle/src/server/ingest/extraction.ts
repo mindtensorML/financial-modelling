@@ -30,6 +30,8 @@ export interface ExtractContext {
   stores: string[]
   /** Product names the household already uses, most frequent first. */
   products: string[]
+  /** Members' names, so a pasted "Sam: can you grab milk" is read as a message from Sam. */
+  people?: string[]
 }
 
 const nullableString = { type: ['string', 'null'] }

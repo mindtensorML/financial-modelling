@@ -26,7 +26,12 @@ export function extractWithRules(text: string, ctx: ExtractContext, options: { s
       })),
     }
   }
-  const items = parseListText(text, { knownStores: ctx.stores, knownProducts: ctx.products, splitRuns: options.speech })
+  const items = parseListText(text, {
+    knownStores: ctx.stores,
+    knownProducts: ctx.products,
+    people: ctx.people,
+    splitRuns: options.speech,
+  })
   return {
     kind: 'list',
     store: null,

@@ -17,6 +17,8 @@ export interface ParseOptions {
   knownStores?: string[]
   /** Names of products already seen, to help split unpunctuated dictation. */
   knownProducts?: string[]
+  /** Names of the household's members: "Sam: milk and eggs" is a message from Sam, not a store called Sam. */
+  people?: string[]
   /**
    * Split long unpunctuated runs ("milk eggs bread two avocados") at known grocery words.
    * Only for speech: typed and OCR text has real separators, and splitting it would break
@@ -75,7 +77,8 @@ const LEADING_FILLERS = [
   "don't forget to get", 'dont forget to get', "don't forget", 'dont forget', 'remember to get',
   'remember to buy', 'can you get', 'can you grab', 'can you pick up', 'can you buy', 'could you get',
   'could you grab', 'could you pick up', 'please get', 'please grab', 'please buy', 'please pick up',
-  'we need to get', 'we also need', 'we need', 'i need to get', 'i need', 'need to get', 'need to buy',
+  'we need to get', 'we also need', 'we need', 'i need to get', 'i need', 'need to get', 'need to buy', 'need',
+  "i'll get", "i'll grab", "i'll pick up", "i'll buy", 'i will get', "let's get", 'lets get',
   "we're out of", 'we are out of', 'were out of', 'out of', 'running low on', 'running out of', 'low on',
   'pick up', 'pickup', 'get me', 'get', 'buy', 'grab', 'add', 'also', 'and', 'plus', 'oh', 'um', 'uh',
   'then', 'maybe', 'some more', 'some', 'more', 'a few', 'a lot of', 'lots of', 'any', 'please', 'hey',
@@ -90,6 +93,33 @@ const GENERIC_TITLES = new Set([
   'todo', 'to do', 'things to buy', 'things to get', 'need', 'needs', 'buy', 'items', 'notes',
   'hey', 'hi', 'hello', 'thanks', 'thank you', 'ok', 'okay', 'sure', 'yes', 'yep', 'no', 'lol',
   'love you', 'ty', 'thx', 'k', 'delivered', 'read', 'imessage', 'text message', 'today', 'yesterday',
+])
+
+/** Labels before a colon that say who or what a list is for, never which store: "Mom:", "Dinner:". */
+const NOT_STORE_LABELS = new Set([
+  'note', 'reminder', 'ps', 'p.s', 'p.s.', 'fyi', 'btw', 'important', 'urgent', 'update', 'edit', 'also',
+  'me', 'mom', 'mum', 'dad', 'honey', 'babe', 'love', 'lunch', 'dinner', 'dessert', 'tonight', 'tomorrow',
+  'weekend', 'this week', 'next week', 'party', 'recipe', 'ingredients', 'menu', 'meal plan',
+])
+
+/** The start of a message to someone rather than a list ("Mom: can you grab milk?"). */
+const CHAT_OPENER =
+  /^(?:hey|hi|hello|yo|can (?:you|u)|could (?:you|u)|would you|will you|please|pls|plz|don'?t forget|remember|we need|we're|we are|i need|i'm|need you|if you|when you|on your way|ok|okay|thanks|thank you|btw|fyi)\b/i
+
+/** Leftovers of chat once the items are split out ("we're", "it's", "you too"); never an item alone. */
+const CHAT_WORDS = new Set([
+  'i', 'im', 'ill', 'ive', 'me', 'my', 'we', 'were', 'weve', 'well', 'us', 'our', 'you', 'youre', 'u', 'your',
+  'they', 'theyre', 'it', 'its', 'that', 'thats', 'this', 'is', 'are', 'am', 'was', 'be', 'been', 'so', 'just',
+  'still', 'too', 'also', 'really', 'need', 'needs', 'want', 'wants', 'have', 'has', 'had', 'got', 'gonna',
+  'will', 'would', 'could', 'can', 'should', 'almost', 'already', 'totally', 'completely', 'again', 'now', 'soon',
+  'here', 'there', 'ok', 'okay', 'yes', 'no', 'yeah', 'yep', 'nope', 'lol', 'haha', 'sure', 'thanks', 'thx', 'ty',
+  'please', 'pls',
+])
+
+// A period after one of these is an abbreviation ("Dr. Bronner's", "2 lbs. chicken"), not the end of a sentence.
+const ABBREVIATIONS = new Set([
+  'dr', 'st', 'mr', 'mrs', 'ms', 'jr', 'sr', 'mt', 'ft', 'no', 'vs', 'approx', 'etc', 'inc', 'co', 'e.g', 'i.e',
+  'a.m', 'p.m', 'oz', 'lb', 'lbs', 'pkg', 'pk', 'doz', 'ct', 'gal', 'qt', 'pt', 'tbsp', 'tsp', 'org', 'lg', 'sm', 'med',
 ])
 
 const PROTECTED_AND = [
@@ -276,6 +306,7 @@ export function parseItemText(segment: string): Omit<ParsedItem, 'storeHint' | '
   const name = words.join(' ').replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}%)]+$/gu, '')
   if (!/\p{L}/u.test(name) || name.length > 80 || words.length > 10) return null
   if (unitOf(name) && quantity === null) return null
+  if (GENERIC_TITLES.has(foldText(name)) || tokenize(name).every((word) => CHAT_WORDS.has(word))) return null
   return {
     name: displayName(name),
     quantity: quantity !== null && quantity > 0 && quantity <= 1000 ? quantity : null,
@@ -285,13 +316,28 @@ export function parseItemText(segment: string): Omit<ParsedItem, 'storeHint' | '
   }
 }
 
+/** "Get milk. Eggs too!" is two sentences; "Dr. Bronner's soap" is one. */
+function splitSentences(line: string): string[] {
+  const sentences: string[] = []
+  let start = 0
+  for (const m of line.matchAll(/([.!?]+)\s+/g)) {
+    const before = line.slice(start, m.index)
+    const word = (/(\S+)$/.exec(before)?.[1] ?? '').toLowerCase()
+    if (m[1] === '.' && (/^\p{L}$/u.test(word) || ABBREVIATIONS.has(word))) continue
+    sentences.push(before)
+    start = m.index + m[0].length
+  }
+  sentences.push(line.slice(start))
+  return sentences
+}
+
 function splitSegments(line: string): string[] {
   let s = line
   for (const phrase of PROTECTED_AND) {
     s = s.replace(new RegExp(`\\b${escapeRegExp(phrase)}\\b`, 'gi'), (m) => m.replace(/\s+(?:and|&|n)\s+/i, ' \u0001 '))
   }
-  return s
-    .split(/\s*;\s*|\s*,(?!\d)\s*|\s+(?:and|&|plus|also|then)\s+/i)
+  return splitSentences(s)
+    .flatMap((sentence) => sentence.split(/\s*;\s*|\s*,(?!\d)\s*|\s+(?:and|&|plus|also|then)\s+/i))
     .map((part) => part.replace(/\u0001/g, 'and').trim())
     .filter(Boolean)
 }
@@ -348,16 +394,23 @@ function matchStore(label: string, knownStores: string[], strict: boolean): stri
   return knownStores.find((s) => matchKnownChain(s) === chain) ?? chain
 }
 
-function detectHeading(line: string, knownStores: string[]): Heading | null {
+function detectHeading(line: string, knownStores: string[], people: ReadonlySet<string>): Heading | null {
   const colon = /\d:\d/.test(line) ? null : /^([^:]{1,40}):\s*(.*)$/.exec(line)
   if (colon && colon[1]!.trim().split(/\s+/).length <= 4) {
     const label = colon[1]!.trim()
     const rest = colon[2]!.trim()
-    const category = CATEGORIES.find((c) => foldText(c) === foldText(label))
+    const folded = foldText(label)
+    const category = CATEGORIES.find((c) => foldText(c) === folded)
     if (category) return { kind: 'category', value: category, rest }
-    if (GENERIC_TITLES.has(foldText(label))) return { kind: 'other', value: '', rest }
+    if (GENERIC_TITLES.has(folded)) return { kind: 'other', value: '', rest }
     const store = matchStore(label, knownStores, false)
-    return store ? { kind: 'store', value: store, rest } : { kind: 'other', value: label, rest }
+    if (store) return { kind: 'store', value: store, rest }
+    // An unknown label is usually a store the household has not used yet ("Wegmans:"), unless it
+    // names a sender ("Sam: can you grab milk?") or a purpose ("For tacos:").
+    if (people.has(folded) || NOT_STORE_LABELS.has(folded) || folded.startsWith('for ') || CHAT_OPENER.test(rest)) {
+      return { kind: 'other', value: '', rest }
+    }
+    return { kind: 'other', value: label, rest }
   }
   const store = matchStore(line, knownStores, true)
   if (store) return { kind: 'store', value: store, rest: '' }
@@ -393,6 +446,12 @@ function buildLexicon(knownProducts: string[] = []): Set<string> {
 export function parseListText(text: string, options: ParseOptions = {}): ParsedItem[] {
   const knownStores = options.knownStores ?? []
   const lexicon = buildLexicon(options.knownProducts)
+  const people = new Set(
+    (options.people ?? []).flatMap((person) => {
+      const name = foldText(person.trim())
+      return name ? [name, name.split(/\s+/)[0]!] : []
+    }),
+  )
   const items: ParsedItem[] = []
   const seen = new Set<string>()
   let storeHint: string | null = null
@@ -403,7 +462,7 @@ export function parseListText(text: string, options: ParseOptions = {}): ParsedI
     if (!line) continue
     let lineStore: string | null = storeHint
     let lineCategory: Category | null = categoryHint
-    const heading = isNoiseLine(line) ? null : detectHeading(line, knownStores)
+    const heading = isNoiseLine(line) ? null : detectHeading(line, knownStores, people)
     if (heading) {
       if (heading.kind === 'category') {
         lineCategory = heading.value

@@ -18,7 +18,13 @@ export function extractContext(db: DB, householdId: string, hint: ExtractContext
        ORDER BY purchase_count DESC, updated_at DESC LIMIT 150`,
     )
     .all(householdId) as { name: string }[]
-  return { hint, stores: activeStores(db, householdId).map((s) => s.name), products: products.map((p) => p.name) }
+  const people = db.prepare('SELECT name FROM users WHERE household_id = ? ORDER BY created_at').all(householdId) as { name: string }[]
+  return {
+    hint,
+    stores: activeStores(db, householdId).map((s) => s.name),
+    products: products.map((p) => p.name),
+    people: people.map((p) => p.name),
+  }
 }
 
 function sameDay(a: string | null, b: string | null): boolean {

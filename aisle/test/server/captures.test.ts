@@ -135,6 +135,18 @@ describe('captures', () => {
     expect((await client.sync()).items.filter((i) => !i.deletedAt).map((i) => i.name)).toEqual(['Milk', 'Eggs'])
   })
 
+  it('reads a pasted message from a member without filing it under a store named after them', async () => {
+    const { app, queue } = env()
+    const { client } = await signedIn(app, 'Ana')
+    const created = await capture(client, { text: 'Ana: oat milk, eggs' })
+    await queue.idle()
+    const ready = await client.json<Capture>('GET', `/api/captures/${created.id}`)
+    expect(ready.extraction!.items.map((i) => [i.name, i.storeHint])).toEqual([
+      ['Oat milk', null],
+      ['Eggs', null],
+    ])
+  })
+
   it('reads photos with the AI provider and serves the original back only to the household', async () => {
     const { app, queue, blobs } = env({ ai: fakeAi(), ocr: null })
     const { client, me } = await signedIn(app)

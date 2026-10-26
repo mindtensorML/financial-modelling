@@ -6,7 +6,12 @@ import type { OcrEngine } from '../../src/server/ingest/ocr'
 import { CaptureFailure, runPipeline } from '../../src/server/ingest/pipeline'
 import { extractWithRules } from '../../src/server/ingest/rules'
 
-const ctx: ExtractContext = { hint: 'auto', stores: ["Trader Joe's", 'Costco'], products: ['Oat milk', 'Bananas'] }
+const ctx: ExtractContext = {
+  hint: 'auto',
+  stores: ["Trader Joe's", 'Costco'],
+  products: ['Oat milk', 'Bananas'],
+  people: ['Ana Lopez', 'Ben'],
+}
 
 const RECEIPT = `TRADER JOE'S #552
 BANANAS                    1.16
@@ -121,6 +126,15 @@ describe('extractWithRules', () => {
     ])
   })
 
+  it('reads a pasted message from a household member as a list, not a store heading', () => {
+    const raw = extractWithRules('Ben: milk, eggs and coffee', ctx)
+    expect(raw.items.map((i) => [i.name, i.storeHint])).toEqual([
+      ['Milk', null],
+      ['Eggs', null],
+      ['Coffee', null],
+    ])
+  })
+
   it('follows the hint and treats speech as a list', () => {
     expect(extractWithRules(RECEIPT, { ...ctx, hint: 'list' }).kind).toBe('list')
     expect(extractWithRules('TOTAL 5.00 milk', { ...ctx, hint: 'auto' }, { speech: true }).kind).toBe('list')
@@ -229,6 +243,7 @@ describe('createAiEngine', () => {
     expect(body.response_format.json_schema.strict).toBe(true)
     expect(body.messages[0].content).toContain("The household's stores: Trader Joe's; Costco.")
     expect(body.messages[0].content).toContain('Items the household already buys: Oat milk; Bananas.')
+    expect(body.messages[0].content).toContain('People in the household: Ana Lopez; Ben.')
     expect(body.messages[1].content).toContain('The user says this is a shopping list.')
   })
 

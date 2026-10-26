@@ -73,6 +73,35 @@ describe('parseListText', () => {
     ])
   })
 
+  it('reads a message pasted with its sender, without taking the sender for a store', () => {
+    const message = "Sam: can you pick up limes, cilantro, 2 avocados and tortillas? we're also out of dish soap"
+    const items = parseListText(message, { people: ['Sam Rivera'] })
+    expect(items.map((i) => [i.name, i.quantity, i.storeHint])).toEqual([
+      ['Limes', null, null],
+      ['Cilantro', null, null],
+      ['Avocados', 2, null],
+      ['Tortillas', null, null],
+      ['Dish soap', null, null],
+    ])
+    const stores = (text: string, people?: string[]) => parseListText(text, { people }).map((i) => i.storeHint)
+    expect(stores('Sam: milk, eggs', ['Sam Rivera'])).toEqual([null, null])
+    expect(stores('Mom: we need milk and eggs')).toEqual([null, null])
+    expect(stores('Dinner: salmon, asparagus')).toEqual([null, null])
+    expect(stores('For tacos: tortillas, limes')).toEqual([null, null])
+    // A store the household has not used yet still files the line.
+    expect(stores('Wegmans: milk, eggs')).toEqual(['Wegmans', 'Wegmans'])
+  })
+
+  it('splits sentences, but not at abbreviations', () => {
+    expect(names('Need milk. Eggs too! Thanks')).toEqual(['Milk', 'Eggs'])
+    expect(names("ok! I'll get bread. Love you")).toEqual(['Bread'])
+    const items = parseListText("Dr. Bronner's soap and 2 lbs. chicken")
+    expect(items.map((i) => [i.name, i.quantity, i.unit])).toEqual([
+      ["Dr. Bronner's soap", null, null],
+      ['Chicken', 2, 'lb'],
+    ])
+  })
+
   it('files items under store headings', () => {
     const items = parseListText("Costco:\n- paper towels\n- olive oil\nTrader Joe's\n- bananas\nTarget: shampoo, toothpaste")
     expect(items.map((i) => [i.name, i.storeHint])).toEqual([

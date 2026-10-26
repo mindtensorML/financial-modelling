@@ -35,6 +35,7 @@ For lists:
 - Keep brands and varieties that are written ("Oat milk", "Barilla penne"). Drop filler such as "get" or "we need".
 - Put remarks such as "the big one" or "if on sale" in note.
 - If items are grouped under a store heading ("Costco:") or a store is written next to an item ("milk from TJ's"), set storeHint to that store.
+- A name before a colon at the start of a message ("Sam: can you grab milk?") is who sent it, not a store.
 - Skip crossed-out items and anything that is not a thing to buy.
 
 For receipts:
@@ -77,7 +78,8 @@ const AUDIO_EXTENSIONS: Record<string, string> = {
 function householdContext(ctx: ExtractContext): string {
   const stores = ctx.stores.length ? ctx.stores.join('; ') : 'none yet'
   const products = ctx.products.length ? ctx.products.slice(0, 150).join('; ') : 'none yet'
-  return `The household's stores: ${stores}.\nItems the household already buys: ${products}.`
+  const people = ctx.people?.length ? `\nPeople in the household: ${ctx.people.join('; ')}.` : ''
+  return `The household's stores: ${stores}.\nItems the household already buys: ${products}.${people}`
 }
 
 function describeFailure(status: number, detail: string): string {
