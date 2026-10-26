@@ -11,6 +11,8 @@ export interface MembershipChange {
   /** The new rev of the household that received carried-over items, if any were carried. */
   rev: number | null
   carried: number
+  /** The household that was deleted because its last member left; its uploads must be removed too. */
+  deletedHouseholdId: string | null
 }
 
 interface CarriedItem {
@@ -30,7 +32,7 @@ interface CarriedItem {
 export function joinWithInvite(db: DB, user: UserRow, inviteCode: string, now: number): MembershipChange {
   const target = householdByInvite(db, inviteCode)
   if (!target) throw new HttpError(404, 'No household has that invite code')
-  if (target.id === user.household_id) return { householdId: target.id, rev: null, carried: 0 }
+  if (target.id === user.household_id) return { householdId: target.id, rev: null, carried: 0, deletedHouseholdId: null }
   return db.transaction((): MembershipChange => {
     const previous = user.household_id
     const lastMember = memberCount(db, previous) === 1
@@ -46,7 +48,8 @@ export function joinWithInvite(db: DB, user: UserRow, inviteCode: string, now: n
       : []
     db.prepare('UPDATE users SET household_id = ? WHERE id = ?').run(target.id, user.id)
     if (lastMember) db.prepare('DELETE FROM households WHERE id = ?').run(previous)
-    if (!carry.length) return { householdId: target.id, rev: null, carried: 0 }
+    const deletedHouseholdId = lastMember ? previous : null
+    if (!carry.length) return { householdId: target.id, rev: null, carried: 0, deletedHouseholdId }
     const { rev } = withWrite(db, target.id, user.id, now, (ctx) => {
       for (const item of carry) {
         addItem(ctx, {
@@ -60,7 +63,7 @@ export function joinWithInvite(db: DB, user: UserRow, inviteCode: string, now: n
         })
       }
     })
-    return { householdId: target.id, rev, carried: carry.length }
+    return { householdId: target.id, rev, carried: carry.length, deletedHouseholdId }
   })()
 }
 
@@ -70,6 +73,6 @@ export function leaveHousehold(db: DB, user: UserRow, now: number): MembershipCh
   return db.transaction((): MembershipChange => {
     const householdId = createHousehold(db, defaultHouseholdName(user.name), now)
     db.prepare('UPDATE users SET household_id = ? WHERE id = ?').run(householdId, user.id)
-    return { householdId, rev: null, carried: 0 }
+    return { householdId, rev: null, carried: 0, deletedHouseholdId: null }
   })()
 }

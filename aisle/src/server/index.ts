@@ -5,13 +5,21 @@ import { join, relative } from 'node:path'
 import { createApp } from './app'
 import { openDatabase } from './db'
 import { loadConfig } from './env'
+import { BlobStore } from './ingest/blobs'
+import { createEngines } from './ingest/pipeline'
+import { CaptureQueue } from './ingest/queue'
 import { runMaintenance } from './maintenance'
+import { RealtimeHub } from './realtime'
 
 if (existsSync('.env')) process.loadEnvFile('.env')
 
 const config = loadConfig()
 const db = openDatabase(join(config.dataDir, 'aisle.db'))
-const app = createApp({ db, config })
+const hub = new RealtimeHub()
+const blobs = new BlobStore(join(config.dataDir, 'uploads'))
+const engines = createEngines(config)
+const queue = new CaptureQueue({ db, blobs, engines, hub, now: Date.now })
+const app = createApp({ db, config, hub, blobs, queue })
 
 // The service worker normally answers the share target; this only runs before it is installed.
 app.post('/share-target', (c) => c.redirect('/#/capture?shared=0', 303))
@@ -34,12 +42,20 @@ maintenance.unref()
 
 const server = serve({ fetch: app.fetch, port: config.port }, (info) => {
   console.log(`Aisle listening on http://localhost:${info.port}`)
-  if (!config.ai) console.log('No AI provider configured: captures use on-device OCR and rule-based parsing.')
+  if (config.ai) console.log(`Reading captures with ${config.ai.model} at ${config.ai.baseUrl}`)
+  else console.log(`No AI provider configured: captures use ${config.ocrEnabled ? 'OCR and ' : ''}the rule-based parsers.`)
+  const resumed = queue.resume()
+  if (resumed) console.log(`Resuming ${resumed} unfinished capture${resumed === 1 ? '' : 's'}`)
 })
 
-function shutdown() {
+let stopping = false
+async function shutdown() {
+  if (stopping) return
+  stopping = true
   clearInterval(maintenance)
   server.close()
+  // Captures cut off mid-read stay "processing" and are picked up again on the next start.
+  await engines.ocr?.close().catch(() => undefined)
   db.close()
   process.exit(0)
 }

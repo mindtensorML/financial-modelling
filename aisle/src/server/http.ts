@@ -6,6 +6,8 @@ import { type RateLimiter, SESSION_COOKIE } from './auth'
 import type { DB } from './db'
 import type { Config } from './env'
 import { HttpError } from './errors'
+import type { BlobStore } from './ingest/blobs'
+import type { CaptureQueue } from './ingest/queue'
 import type { RealtimeHub } from './realtime'
 import type { UserRow } from './rows'
 
@@ -13,8 +15,16 @@ export interface ServerContext {
   db: DB
   config: Config
   hub: RealtimeHub
+  blobs: BlobStore
+  queue: CaptureQueue
   now: () => number
-  limits: { login: RateLimiter; loginAccount: RateLimiter; signup: RateLimiter; join: RateLimiter }
+  limits: {
+    login: RateLimiter
+    loginAccount: RateLimiter
+    signup: RateLimiter
+    join: RateLimiter
+    captures: RateLimiter
+  }
 }
 
 export interface AppEnv {

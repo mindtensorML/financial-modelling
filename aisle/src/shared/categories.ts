@@ -93,6 +93,7 @@ const KEYWORDS: Record<Category, string[]> = {
   ],
   Snacks: [
     'chip', 'potato chip', 'tortilla chip', 'pretzel', 'popcorn', 'cracker', 'cookie', 'candy', 'chocolate',
+    'milk chocolate', 'dark chocolate', 'chocolate bar',
     'granola bar', 'protein bar', 'nut', 'almond', 'cashew', 'peanut', 'pistachio', 'walnut', 'pecan',
     'trail mix', 'dried fruit', 'raisin', 'gummy', 'gummies', 'fruit snack', 'jerky', 'rice cake', 'snack',
     'goldfish',
@@ -101,7 +102,7 @@ const KEYWORDS: Record<Category, string[]> = {
     'water', 'sparkling water', 'seltzer', 'soda', 'cola', 'coke', 'pepsi', 'sprite', 'juice',
     'orange juice', 'apple juice', 'lemonade', 'coffee', 'coffee bean', 'ground coffee', 'tea', 'green tea',
     'kombucha', 'beer', 'wine', 'red wine', 'white wine', 'liquor', 'vodka', 'whiskey', 'gin', 'rum',
-    'tequila', 'sports drink', 'gatorade', 'energy drink', 'la croix', 'coconut water', 'drink',
+    'tequila', 'sports drink', 'gatorade', 'energy drink', 'la croix', 'coconut water', 'drink', 'hot chocolate',
   ],
   Household: [
     'paper towel', 'toilet paper', 'tissue', 'napkin', 'trash bag', 'garbage bag', 'dish soap',
@@ -150,6 +151,13 @@ for (const category of CATEGORIES) {
 
 export const MAX_PHRASE_WORDS = maxPhraseWords
 
+// Receipts print the flavor after the product ("GREEK YGRT VAN"), so a flavor only decides
+// the category when nothing before it does.
+const FLAVORS = new Set([
+  'vanilla', 'chocolate', 'strawberry', 'blueberry', 'raspberry', 'cherry', 'peach', 'mango', 'honey',
+  'caramel', 'cinnamon', 'coconut', 'mint', 'lemon', 'lime',
+])
+
 /**
  * Picks the category of the phrase that ends closest to the end of the name, because the
  * last word is usually the head noun ("chicken soup" is soup, "hot dog buns" are buns).
@@ -158,13 +166,20 @@ export const MAX_PHRASE_WORDS = maxPhraseWords
 export function classify(name: string): Category {
   const tokens = phraseTokens(name)
   for (const [word, category] of OVERRIDES) if (tokens.includes(word)) return category
+  let flavor: Category | null = null
   for (let end = tokens.length - 1; end >= 0; end--) {
     for (let len = Math.min(maxPhraseWords, end + 1); len >= 1; len--) {
-      const category = phraseIndex.get(tokens.slice(end - len + 1, end + 1).join(' '))
-      if (category) return category
+      const phrase = tokens.slice(end - len + 1, end + 1).join(' ')
+      const category = phraseIndex.get(phrase)
+      if (!category) continue
+      if (len === 1 && end > 0 && FLAVORS.has(phrase)) {
+        flavor ??= category
+        break
+      }
+      return category
     }
   }
-  return 'Other'
+  return flavor ?? 'Other'
 }
 
 /** Singular phrases ("paper towel", "milk") known to be grocery items. */

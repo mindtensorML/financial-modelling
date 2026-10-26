@@ -90,6 +90,14 @@ describe('classify', () => {
     ['toothpaste', 'Personal Care'],
     ['ibuprofen', 'Health'],
     ['flux capacitor', 'Other'],
+    // Receipt order: product first, flavor last.
+    ['Greek yogurt vanilla', 'Dairy & Eggs'],
+    ['Sparkling water lemon', 'Beverages'],
+    ['Tomatoes cherry', 'Produce'],
+    ['milk chocolate', 'Snacks'],
+    ['hot chocolate', 'Beverages'],
+    ['vanilla', 'Pantry'],
+    ['lemons', 'Produce'],
   ])('%s is %s', (name, category) => {
     expect(classify(name)).toBe(category)
   })

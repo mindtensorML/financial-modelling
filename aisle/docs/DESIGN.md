@@ -120,6 +120,15 @@ Every synced table has a `rev` column (the household's counter at the time of th
 
 The review step stays because extraction from photos is never perfect, and because corrections are the cheapest way for the app to learn your vocabulary.
 
+### 5.3 When things go wrong
+
+- **Engines fall back in order.** If the AI provider fails (bad key, rate limit, outage, an answer that is not the requested JSON), text falls back to the rule-based parser and photos to OCR. The capture carries a warning saying so, which the review screen shows. A voice note with no transcription available fails with a message suggesting dictation instead.
+- **Failed captures can be retried**, optionally with a different hint ("this is a receipt"). Dismissing or deleting a capture while it is still being read wins over the result.
+- **Uploads are idempotent.** The client picks the capture ID, so an upload retried after a dropped connection returns the existing capture instead of creating a second one.
+- **A check-off and a receipt are one purchase.** When a receipt line matches something you checked off at that store within 12 hours, the check-off is upgraded with the receipt's store and price instead of being counted twice, so cadence and prices stay right. Items still on the list are checked off by the receipt.
+- **Duplicate receipts are flagged.** A receipt with the same store, date, and total as one already added in the last four months gets a warning before you apply it.
+- **Implausible dates are ignored.** A receipt date in the future or more than about a year back (usually an OCR misread) is replaced by the time of the capture.
+
 ## 6. Learning
 
 All of this runs on the server from the `purchases` and `store_choices` tables, and the results are synced or served to clients.
@@ -170,7 +179,7 @@ The list must work in a store with no signal, and two people editing at once mus
 - Passwords are hashed with scrypt. Sessions are random tokens in HTTP-only, SameSite cookies, and only a hash of each token is stored. Login attempts and invite-code guesses are rate limited, and changing a password signs out every other device.
 - Once everyone in a household has an account, `SIGNUP_MODE=invite` closes the server to strangers: new accounts must join an existing household with its invite code.
 - Every request is scoped to the user's household, and state-changing requests must carry a custom header, which a cross-site form cannot send.
-- Uploaded originals are stored on the server's disk and are only served to members of the household. Uploads are size-limited and restricted to image, audio, and text types.
+- Uploaded originals are stored on the server's disk, one folder per household, and are only served to members of the household. Uploads are size-limited (15 MB for photos, 25 MB for audio) and restricted to image, audio, and text types; images must start with a real image signature, and originals are served with a sandboxing content security policy so a disguised file cannot run as a page. Deleting a capture deletes its original and its text, while the items and purchases already added from it stay. When a household is removed, its uploads are removed with it.
 - When an AI provider is configured, images, audio, and text you capture are sent to it. To keep them on your own hardware, point the provider at a local Ollama vision model, or run without a provider.
 
 ## 9. Build plan, step by step
@@ -184,7 +193,7 @@ Each step is a separate commit, so the history can be followed in order.
 | 3. Domain logic | Shared parsers (list text, receipts), name normalization, categories, fuzzy matching, store-name canonicalization, with unit tests | Done |
 | 4. Accounts and sync | Sign-up, login, households and invites, stores, list items filed by learned store, operation push and incremental pull, realtime events | Done |
 | 5. Learning | Purchase cadence, walking order, price stats, insights API | Done |
-| 6. Ingestion | Uploads, job queue, OpenAI-compatible provider, OCR fallback, review and apply | Planned |
+| 6. Ingestion | Uploads, job queue, OpenAI-compatible provider, OCR fallback, review and apply | Done |
 | 7. Web app | List grouped by store, quick add with autocomplete, capture screen (camera, upload, paste, record, dictate), review screen, insights, stores and household settings, offline outbox, share target | Planned |
 | 8. Deploy | Dockerfile and Fly.io config with a persistent volume | Planned |
 

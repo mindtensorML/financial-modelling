@@ -50,6 +50,17 @@ export function findProduct(db: DB, householdId: string, name: string): ProductM
   return variant ? { product: getProduct(db, householdId, variant.id)!, via: 'core' } : null
 }
 
+/** Only a learned alias: how a receipt's printed text was confirmed or corrected before. */
+export function findProductByAlias(db: DB, householdId: string, text: string): ProductRow | null {
+  const row = db
+    .prepare(
+      `SELECT p.* FROM product_aliases a JOIN products p ON p.id = a.product_id
+       WHERE a.household_id = ? AND a.alias_key = ? AND p.deleted_at IS NULL`,
+    )
+    .get(householdId, nameKey(text)) as ProductRow | undefined
+  return row ?? null
+}
+
 export function resolveProduct(
   ctx: WriteContext,
   name: string,

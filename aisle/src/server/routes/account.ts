@@ -10,7 +10,7 @@ import { joinWithInvite, leaveHousehold } from '../services/membership'
 import { passwordSchema, personNameSchema } from './auth'
 
 export function accountRoutes(server: ServerContext) {
-  const { db, hub, limits } = server
+  const { db, hub, blobs, limits } = server
   const app = new Hono<AppEnv>()
   const reload = (id: string) => db.prepare('SELECT * FROM users WHERE id = ?').get(id) as UserRow
 
@@ -61,6 +61,11 @@ export function accountRoutes(server: ServerContext) {
     const { inviteCode } = await readJson(c, z.object({ inviteCode: z.string().trim().min(4).max(40) }))
     const change = joinWithInvite(db, user, inviteCode, server.now())
     if (change.rev !== null) hub.publish(change.householdId, change.rev)
+    if (change.deletedHouseholdId) {
+      await blobs
+        .removeHousehold(change.deletedHouseholdId)
+        .catch((error) => console.error(`Could not remove uploads of household ${change.deletedHouseholdId}`, error))
+    }
     return c.json({ ...getMe(db, reload(user.id)), carried: change.carried } satisfies JoinResponse)
   })
 

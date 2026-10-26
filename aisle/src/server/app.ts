@@ -1,3 +1,4 @@
+import { join } from 'node:path'
 import { Hono } from 'hono'
 import { bodyLimit } from 'hono/body-limit'
 import { getCookie } from 'hono/cookie'
@@ -9,9 +10,13 @@ import type { DB } from './db'
 import type { Config } from './env'
 import { HttpError } from './errors'
 import { type AppEnv, type ServerContext, setSessionCookie } from './http'
+import { BlobStore } from './ingest/blobs'
+import { createEngines } from './ingest/pipeline'
+import { CaptureQueue } from './ingest/queue'
 import { RealtimeHub } from './realtime'
 import { accountRoutes } from './routes/account'
 import { authRoutes } from './routes/auth'
+import { captureRoutes } from './routes/captures'
 import { insightsRoutes } from './routes/insights'
 import { syncRoutes } from './routes/sync'
 
@@ -21,6 +26,10 @@ export interface AppDeps {
   hub?: RealtimeHub
   now?: () => number
   heartbeatMs?: number
+  /** Where uploads are kept; defaults to `<dataDir>/uploads`. */
+  blobs?: BlobStore
+  /** Must share `hub`, `blobs`, and `now` with the app; defaults to one using the engines in `config`. */
+  queue?: CaptureQueue
 }
 
 const MINUTE = 60_000
@@ -29,16 +38,22 @@ const JSON_LIMIT = 1024 * 1024
 
 export function createApp(deps: AppDeps) {
   const { db, config } = deps
+  const hub = deps.hub ?? new RealtimeHub()
+  const now = deps.now ?? Date.now
+  const blobs = deps.blobs ?? new BlobStore(join(config.dataDir, 'uploads'))
   const server: ServerContext = {
     db,
     config,
-    hub: deps.hub ?? new RealtimeHub(),
-    now: deps.now ?? Date.now,
+    hub,
+    blobs,
+    queue: deps.queue ?? new CaptureQueue({ db, blobs, hub, now, engines: createEngines(config) }),
+    now,
     limits: {
       login: new RateLimiter(10, 15 * MINUTE),
       loginAccount: new RateLimiter(30, 15 * MINUTE),
       signup: new RateLimiter(20, 60 * MINUTE),
       join: new RateLimiter(10, 15 * MINUTE),
+      captures: new RateLimiter(120, 60 * MINUTE),
     },
   }
   const app = new Hono<AppEnv>()
@@ -66,13 +81,12 @@ export function createApp(deps: AppDeps) {
     await next()
   })
 
-  app.use(
-    '/api/*',
-    bodyLimit({
-      maxSize: JSON_LIMIT,
-      onError: (c) => c.json({ error: 'That request is too large' }, 413),
-    }),
-  )
+  const jsonLimit = bodyLimit({
+    maxSize: JSON_LIMIT,
+    onError: (c) => c.json({ error: 'That request is too large' }, 413),
+  })
+  // Uploads have their own, larger limit on the capture route.
+  app.use('/api/*', (c, next) => (c.req.method === 'POST' && c.req.path === '/api/captures' ? next() : jsonLimit(c, next)))
 
   app.get('/api/health', (c) => {
     db.prepare('SELECT 1').get()
@@ -95,6 +109,7 @@ export function createApp(deps: AppDeps) {
   app.route('/api', accountRoutes(server))
   app.route('/api', syncRoutes(server, deps.heartbeatMs ?? 25_000))
   app.route('/api', insightsRoutes(server))
+  app.route('/api', captureRoutes(server))
 
   app.all('/api/*', (c) => c.json({ error: 'Not found' }, 404))
 
