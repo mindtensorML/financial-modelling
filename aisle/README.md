@@ -62,6 +62,8 @@ Settings come from environment variables, or from a `.env` file in the working d
 
 Aisle is one Node process with a SQLite database on disk, so it needs a single small server with a persistent volume. Serve it over HTTPS: installing to the home screen, offline use, the share target, and voice recording all need a secure origin.
 
+Choose one of the ways below. Each server keeps its own database, so running two would give you two separate lists. Render is set up entirely in the browser; Docker and Fly.io take a few commands in a terminal. None of them needs a Docker Hub account: each one builds the image from this folder's Dockerfile.
+
 ### Render, from the browser
 
 [render.yaml](../render.yaml), at the root of this repository, tells [Render](https://render.com) everything it needs: build this folder's Dockerfile, attach a 1 GB disk at `/data` for the database, and set `COOKIE_SECURE` and `TRUST_PROXY` the way Render needs them. It costs $7 a month for the server and $0.25 a month for the disk, charged by the second. The free plan cannot have a disk, so it would lose the list every time it restarted.
