@@ -7,7 +7,7 @@ A shared shopping list that files every item under the store you usually buy it 
 - **Learns as you shop.** Checking items off and capturing receipts teach it where you buy things, how often ("Running low?"), what they cost at each store, and the order you walk each store in, which it uses to sort that store's section.
 - **Shared and offline.** Everyone in the household sees changes within a second. The list keeps working with no signal in the store and catches up when it reconnects. It installs to the home screen like an app.
 
-How it works, and why it is built this way, is in [docs/DESIGN.md](docs/DESIGN.md).
+How it works, and why it is built this way, is in [docs/DESIGN.md](docs/DESIGN.md). To put it online for your household without installing anything, see [Render, from the browser](#render-from-the-browser).
 
 ## Run it locally
 
@@ -62,6 +62,19 @@ Settings come from environment variables, or from a `.env` file in the working d
 
 Aisle is one Node process with a SQLite database on disk, so it needs a single small server with a persistent volume. Serve it over HTTPS: installing to the home screen, offline use, the share target, and voice recording all need a secure origin.
 
+### Render, from the browser
+
+[render.yaml](../render.yaml), at the root of this repository, tells [Render](https://render.com) everything it needs: build this folder's Dockerfile, attach a 1 GB disk at `/data` for the database, and set `COOKIE_SECURE` and `TRUST_PROXY` the way Render needs them. It costs $7 a month for the server and $0.25 a month for the disk, charged by the second. The free plan cannot have a disk, so it would lose the list every time it restarted.
+
+1. Sign up at [dashboard.render.com](https://dashboard.render.com/register) with your GitHub account.
+2. Choose **New > Blueprint**. Connect GitHub when asked and let Render see this repository.
+3. Pick the repository and the branch that has the `aisle/` folder (not `main`, unless Aisle has been merged there). Give the Blueprint any name, leave the path as `render.yaml`, and choose **Deploy Blueprint**. Render asks for a card before it creates a paid service.
+4. The first build takes a few minutes. When the deploy shows **Live**, open the `onrender.com` address at the top of the service's page and create your account. That account starts your household.
+5. On your phone, open the same address and add it to the home screen: **Share > Add to Home Screen** in Safari on iPhone, or **⋮ > Install app** (or **Add to Home screen**) in Chrome on Android.
+6. Invite the rest of the household from **Settings** with **Copy link** or **Share**. Once they have accounts, open the service's **Environment** page on Render, add `SIGNUP_MODE` with the value `invite`, and save, so nobody else who finds the address can sign up.
+
+To read photos, receipts, and voice notes with AI, add `AI_API_KEY` on the same page (see [Reading captures](#reading-captures)). Each push to the branch deploys the new version by itself; with a disk attached, the app is unreachable for a few seconds while it switches over. Render snapshots the disk every day and keeps each snapshot for a week; restore one from the service's **Disk** page. The **Shell** page runs commands on the server, such as the demo seed below.
+
 ### Docker
 
 ```bash
@@ -88,11 +101,12 @@ Once everyone in your household has an account, run `fly secrets set SIGNUP_MODE
 
 ### Demo data and backups on a server
 
-The demo seed is bundled into the image. Run it as the `node` user so the files it touches stay writable by the server:
+The demo seed is bundled into the image. Run it next to the server:
 
 ```bash
 docker exec -u node -e TZ=America/New_York aisle node dist/server/seed.js --password 'choose-a-password'
 fly ssh console --user node -C "env DATA_DIR=/data TZ=America/New_York node /app/dist/server/seed.js"
+TZ=America/New_York node /app/dist/server/seed.js   # on Render, in the service's Shell page
 ```
 
 Without `--password`, the seed makes one up and prints it, so a public server never ends up with a guessable demo account.
@@ -135,4 +149,4 @@ git subtree split --prefix=aisle -b aisle-only
 git push git@github.com:you/aisle.git aisle-only:main
 ```
 
-Or copy the folder somewhere else and run `git init` there. Nothing in it depends on files outside the folder.
+Or copy the folder somewhere else and run `git init` there. Nothing in it depends on files outside the folder. The one file that belongs with it is `render.yaml` at the repository root: if you use Render, move it to the new repository's root and delete its `rootDir` line.
