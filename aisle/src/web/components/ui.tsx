@@ -1,10 +1,12 @@
 import { LoaderCircle, X } from 'lucide-react'
 import { type ButtonHTMLAttributes, type ComponentProps, type ReactNode, useEffect, useId, useRef } from 'react'
+import { twMerge } from 'tailwind-merge'
 import { useObservable } from '../lib/observable'
 import { dismissToast, toasts } from '../lib/toast'
 
+/** Joins class names; a later utility overrides an earlier one for the same property, so `className` props win. */
 export function cx(...classes: Array<string | false | null | undefined>): string {
-  return classes.filter(Boolean).join(' ')
+  return twMerge(classes)
 }
 
 type Variant = 'primary' | 'secondary' | 'ghost' | 'danger'
