@@ -1,0 +1,32 @@
+# Puts Aisle (the shopping list app in aisle/) online with Render. In the Render Dashboard choose
+# New > Blueprint, connect this repository, and pick the branch that has the aisle/ folder.
+# aisle/README.md walks through it. Field reference: https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: aisle
+    runtime: docker
+    # Builds aisle/Dockerfile. If Aisle gets a repository of its own, move this file to that
+    # repository's root and delete this line.
+    rootDir: aisle
+    # 0.5 CPU and 512 MB for $7 a month. The free plan cannot have a disk, so it would lose the
+    # list every time it restarts.
+    plan: 0.5c-512mb
+    # Closest to New York. Render cannot move a service to another region later.
+    region: virginia
+    healthCheckPath: /api/health
+    # The database, uploaded photos, and the OCR model. Render snapshots it once a day.
+    disk:
+      name: aisle-data
+      mountPath: /data
+      sizeGB: 1
+    # SIGNUP_MODE and AI_API_KEY are left out on purpose: set them on the service's Environment
+    # page, and syncing this file later will not undo them.
+    envVars:
+      - key: DATA_DIR
+        value: /data
+      - key: PORT
+        value: 10000
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: TRUST_PROXY
+        value: cf-connecting-ip
